@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
+<h1 class="title" style="color: black;">
   FlowSpec Manager
 </h1>
-<h2 class="subtitle">
+<h2 class="subtitle" style="color: black;">
   Deploy and manage FS FNM rules easily.
 </h2>
   {% if request.user.is_authenticated %}
-      <h1 class="title">
+      <h1 class="title" style="color: black;">
         <p>Welcome,  {{ request.user.username }}!</p>
       </h1>
   {% else %}

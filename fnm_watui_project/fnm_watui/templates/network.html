@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="column is-4 is-offset-4">
-<h1 class="title">
+<h1 class="title" style="color: black;">
   My Networks
 </h1>
 
 {% if request.user.is_superuser %}
-  <h2 class="subtitle">
+  <h2 class="subtitle" style="color: black;">
     Allocated networks
   </h2>
   <div class="block">
@@ -23,7 +23,7 @@
     {% endfor %}
   </div>
 {% else %}
-  <h2 class="subtitle">
+  <h2 class="subtitle" style="color: black;">
     Your allocated networks
   </h2>
   <div class="block">
@@ -40,7 +40,7 @@
 <br><br>
 
 {% if request.user.is_authenticated and  request.user.is_superuser %}
-  <h1 class="title">
+  <h1 class="title" style="color: black;">
     Allocate a network to User
   </h1>
   <div class="column is-4 is-offset-4" style="display: flex; justify-content: center; align-items: center;">

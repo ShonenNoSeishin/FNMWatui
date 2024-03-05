@@ -5,6 +5,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
 
 from .forms import *
 from .models import Network, Flowspec
@@ -319,3 +320,10 @@ def remove_flowspec_route(rule):
     if response.status_code == 200:
         return True
     return False
+
+
+
+@login_required
+def user_logout(request):
+    logout(request)
+    return redirect("home")

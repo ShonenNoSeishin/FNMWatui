@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
+<h1 class="title" style="color: black;">
   Hostgroup management
 </h1>
   {% if messages %}
@@ -35,7 +35,8 @@
               <th class="has-text-centered">Treshold Mbps (Bandwidth) </th>
               <th class="has-text-centered">Treshold Flows </th>
               <th class="has-text-centered"> ban enabled ? (based on Threshold) </th>
-              <th class="has-text-centered">Delete button</th>
+              <th class="has-text-centered">Modify</th>
+              <th class="has-text-centered">Delete</th>
           </tr>
           <form method="post" action="{% url 'modify_hostgroup' hostgroup.name %}">
             {% csrf_token %}
@@ -46,7 +47,7 @@
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_mbps" value="{{ hostgroup.threshold_mbps }}" /></td>
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_flows" value="{{ hostgroup.threshold_flows }}" /></td>
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="enable_ban" value="{{ hostgroup.enable_ban }}" /></td>
-                <td><button type="submit" class="btn-modify">MODIFY</button></td>
+                <td><button type="submit" class="btn-modify">✅</button></td>
                 <td><a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a></td>
             </tr>
           </form>

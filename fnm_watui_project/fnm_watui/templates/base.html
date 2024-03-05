@@ -21,7 +21,20 @@
 
 <body>
     <section class="hero is-primary is-fullheight">
-        <div class="hero-head">
+        <div class="hero-head" style="background-color: grey ;"> 
+
+<!-- 
+exemples couleurs sobres  
+#eae5cf 
+
+#f4f4f4
+
+#c2e0ff
+
+#d9ead3
+
+#fad4e0 
+-->
             <nav class="navbar">
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
@@ -39,7 +52,7 @@
                             <a href="{% url 'flowspec' %}" class="navbar-item">
                                 Flowspec
                             </a>
-                            <a href="{% url 'logout' %}?next={{ request.path }}" class="navbar-item">
+                            <a href="{% url 'user_logout' %}?next={{ request.path }}" class="navbar-item">
                                 Logout
                             </a>
                             <a href="{% url 'help' %}" class="navbar-item">
@@ -55,7 +68,7 @@
             </nav>
         </div>
 
-        <div class="hero-body">
+        <div class="hero-body" style="background-color: #c6e2b4;">
             <div class="container has-text-centered">
                {% block content %}
                {% endblock %}

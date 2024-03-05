@@ -28,4 +28,10 @@ align-items: center;
     width: 60%; /* Ajustez la largeur de la deuxième colonne */
 }
 
+.th{
+  color: black;
+}
 
+.h1, h1, p, h2, header, a{
+  color: black;
+}
