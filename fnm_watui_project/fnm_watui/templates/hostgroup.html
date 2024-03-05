@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Hostgroup management
+</h1>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if request.user.is_authenticated %}
+      {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+      {% endif %}
+      <h1>Add Hostgroup</h1>
+      <form method="post" action="">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit">Add Hostgroup</button>
+      </form>
+      <h2>Hostgroups</h2>
+      {% for hostgroup in hostgroups %}
+        <table border="1">
+          <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Delete button</th>
+          </tr>
+          <tr>
+              <td> {{ hostgroup.name }} </td>
+              <td> {{ hostgroup.description }} </td>
+              <td>
+                <a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a>
+              </td>
+          </tr>
+
+          
+        </table>
+
+      {% endfor %}
+  {% else %}
+      <h1 class="title">You are not logged in</h1>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+  {% endif %}
+{% endblock %}
+

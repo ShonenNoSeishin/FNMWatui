@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Login</h3>
+    <div class="box">
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="field">
+                    <label class="label">{{ field.label }}</label>
+                    <div class="control">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                        <p class="help is-danger">{{ field.errors }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="control">
+                <button type="submit" class="button is-primary">Log In</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

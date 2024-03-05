@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  FlowSpec Manager
+</h1>
+<h2 class="subtitle">
+  Deploy and manage FS FNM rules easily.
+</h2>
+  {% if request.user.is_authenticated %}
+      <h1 class="title">
+        <p>Welcome,  {{ request.user.username }}!</p>
+      </h1>
+  {% else %}
+      <h1 class="title">You are not logged in</h1>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+  {% endif %}
+{% endblock %}

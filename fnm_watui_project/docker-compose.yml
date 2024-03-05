@@ -1,0 +1,14 @@
+version: '3'
+services:
+  fnmwatui_project:
+    build: .
+    container_name: fnmwatui_project
+    tty: true
+    ports:
+      - "8048:8048"
+    env_file:
+      - .env
+    volumes:
+      - .:/fnmapp
+    command: bash -c "python manage.py runserver 0.0.0.0:8048" 
+    restart: always

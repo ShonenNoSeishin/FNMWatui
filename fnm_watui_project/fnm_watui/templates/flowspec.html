@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if request.user.is_authenticated %}
+
+<h1 class="title">
+  My Flowspec Rules
+</h1>
+<h2 class="subtitle">
+  Generate and deploy flowspec rules on your own networks
+</h2>
+
+<div style="padding-left:280px">
+  <table class="table has-background-primary is-align-self-center">
+    <thead >
+      <tr>
+        <th>Name</th>
+        <th>Source</th>
+        <th>Port</th>
+        <th>Destination</th>
+        <th>Port</th>
+        <th>Protocol</th>
+        <th>Action</th>
+        <th>Status</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if flowspecs %}
+        {% for flowspec in flowspecs %}
+          <tr>
+              <td>{% if flowspec.name != '' %} {{ flowspec.name }} {% else %} - {% endif %}</td>
+              <td>{% if flowspec.srcip != '' %} {{ flowspec.srcip }} {% else %} any {% endif %}</td>
+              <td>{% if flowspec.srcprt != -1 %} {{ flowspec.srcprt }} {% else %} any {% endif %}</td>
+              <td>{% if flowspec.dstip != '' %} {{ flowspec.dstip }} {% else %} - {% endif %}</td>
+              <td>{% if flowspec.dstprt != -1 %} {{ flowspec.dstprt }} {% else %} any {% endif %}</td>
+              <td>{% if flowspec.protocol != '' %} {{ flowspec.protocol }} {% else %} any {% endif %}</td>
+              <td>{{ flowspec.action }}</td>
+              <form action="/flowspec_toggle/" method="post">
+                {% csrf_token %}
+                <td>
+                  <input type="hidden" id="{{ flowspec.id }}" name="flowspec_id" value="{{ flowspec.id }}">
+                  <button type="submit" value="Submit" style="margin-bottom: 2px; height: 20px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button {% if flowspec.active %}is-success{% else %}is-danger{% endif %}">{% if flowspec.active %}Enabled{% else %}Disabled{% endif %}</button>
+                </td>
+              </form>
+              <form action="/flowspec_delete/" method="post">
+                {% csrf_token %}
+                <td>
+                  <input type="hidden" id="{{ flowspec.id }}" name="flowspec_id" value="{{ flowspec.id }}">
+                  <button type="submit" value="Submit" style="margin-bottom: 2px; width: 10px; height: 20px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button is-danger">X</button>
+                </td>
+              </form>
+          </tr>
+        {% endfor %}
+      {% else %}
+          <td colspan="100%" class="has-text-centered">No rules yet.</td>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% if request.user.is_superuser %}
+<div class="buttons has-addons is-centered margin-top: 40px">
+<form action="/flowspec_flush/" method="post">
+  {% csrf_token %}
+    <input type="hidden" id="{{ request.user.id }}" name="user_id" value="{{ request.user.id }}">
+    <button class="button" style="margin-bottom: 2px; width: 300px; height: 30px; padding-top: 2px; padding-bottom: 2px; text-align: justify;">
+      <span>Flush all</span>
+      <span class="icon is-small">
+        <i class="fas fa-times"></i>
+      </span>
+    </button>
+</form>
+<form action="/flowspec_redeploy/" method="post">
+  {% csrf_token %}
+    <input type="hidden" id="{{ request.user.id }}" name="user_id" value="{{ request.user.id }}">
+    <button class="button" style="margin-bottom: 2px; width: 300px; height: 30px; padding-top: 2px; padding-bottom: 2px; text-align: justify;">
+      <span class="icon">
+      <i class="fas fa-check"></i>
+    </span>
+    <span>Redeploy all</span></button>
+</form>
+</div>
+{% endif %}
+
+<div class="column is-4 is-offset-4">
+        <form id="flowspec_form" method="POST" action="/flowspec/">
+              {% csrf_token %}
+                      {{form.as_p}}
+        </br>
+            <button type="submit" value="Submit" class="button is-block is-info" style="width: 100%;">Create Flowspec Rule</button>
+            {% if messages %}
+              <ul class="messages">
+                  {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                  {% endfor %}
+              </ul>
+            {% endif %}
+        </form>
+      </div>
+
+
+{% endif %}
+{% endblock %}

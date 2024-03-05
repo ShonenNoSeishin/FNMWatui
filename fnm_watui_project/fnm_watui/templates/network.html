@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+<h1 class="title">
+  My Networks
+</h1>
+
+{% if request.user.is_superuser %}
+  <h2 class="subtitle">
+    Allocated networks
+  </h2>
+  <div class="block">
+    {% for network in networks %}
+      <div class="notification is-link" style="float: left; width: 92%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
+        {{ network.net }} - {{ network.user.username }}
+      </div>
+      <form style="width: 5%; float:left;" action="/network_delete/" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="{{ network.id }}" name="network_id" value="{{ network.id }}">
+        <button type="submit" value="Submit" style="width: 5%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button is-danger">X</button>
+      </form>
+    {% endfor %}
+  </div>
+{% else %}
+  <h2 class="subtitle">
+    Your allocated networks
+  </h2>
+  <div class="block">
+    {% for network in networks %}
+      {% if network.user.id == request.user.id %}
+        <div class="notification is-link" style="margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
+          {{ network.net }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+<br><br>
+
+{% if request.user.is_authenticated and  request.user.is_superuser %}
+  <h1 class="title">
+    Allocate a network to User
+  </h1>
+  <div class="column is-4 is-offset-4" style="display: flex; justify-content: center; align-items: center;">
+    <form id="network_form" method="POST" action="/network/" style="width: 100%;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button is-info" style="width: 110%; margin: 0 auto;">Allocate Network</button>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </form>
+  </div>
+
+
+{% endif %}
+{% endblock %}
