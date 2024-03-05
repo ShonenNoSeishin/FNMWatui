@@ -98,9 +98,9 @@ def modify_hostgroup(request, hostgroup):
                 return redirect("hostgroup")
             
             keys = ["name", "description", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
-            values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban]
-            for i in range(0,5):
-                if i == "name":
+            values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
+            for i in range(0,6):
+                if keys[i] == "name":
                     response = requests.put(
                             f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
                             auth=(FNM_API_USER, FNM_API_PASSWORD),
@@ -110,6 +110,9 @@ def modify_hostgroup(request, hostgroup):
                         f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
                         auth=(FNM_API_USER, FNM_API_PASSWORD),
                     )
+
+                if response.status_code != 200:
+                    messages.error(request, response.text)
             return redirect("hostgroup")
     else:
         initial_data = {
