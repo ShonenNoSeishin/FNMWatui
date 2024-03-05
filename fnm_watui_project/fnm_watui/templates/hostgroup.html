@@ -23,24 +23,37 @@
           <button type="submit">Add Hostgroup</button>
       </form>
       <h2>Hostgroups</h2>
+      <br>
+      <p> Thresholds <br> (TCP + UDP + ICMP, both directions)</p>
       {% for hostgroup in hostgroups %}
-        <table border="1">
+      <div class="table-container">
+        <table border="1" class="table" id="editable-table">
           <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Delete button</th>
+              <th class="has-text-centered">Name</th>
+              <th class="has-text-centered">Description</th>
+              <th class="has-text-centered">Treshold pps</th>
+              <th class="has-text-centered">Treshold Mbps (Bandwidth) </th>
+              <th class="has-text-centered">Treshold Flows </th>
+              <th class="has-text-centered"> ban enabled ? (based on Threshold) </th>
+              <th class="has-text-centered">Delete button</th>
           </tr>
-          <tr>
-              <td> {{ hostgroup.name }} </td>
-              <td> {{ hostgroup.description }} </td>
-              <td>
-                <a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a>
-              </td>
-          </tr>
+          <form method="post" action="{% url 'modify_hostgroup' hostgroup.name %}">
+            {% csrf_token %}
+            <tr>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="name" value="{{ hostgroup.name }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="description" value="{{ hostgroup.description }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_pps" value="{{ hostgroup.threshold_pps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_mbps" value="{{ hostgroup.threshold_mbps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_flows" value="{{ hostgroup.threshold_flows }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="enable_ban" value="{{ hostgroup.enable_ban }}" /></td>
+                <td><button type="submit" class="btn-modify">MODIFY</button></td>
+                <td><a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a></td>
+            </tr>
+          </form>
 
-          
         </table>
-
+        <br>
+    </div>
       {% endfor %}
   {% else %}
       <h1 class="title">You are not logged in</h1>

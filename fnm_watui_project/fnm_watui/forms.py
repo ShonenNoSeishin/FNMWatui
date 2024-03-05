@@ -14,9 +14,20 @@ def validate_network(value):
     except ValueError as err:
         raise ValidationError(f"The Network {value} is not a valid network") from err
 
+class ModifyHostgroupForm(forms.Form):
+    name = forms.CharField()
+    description = forms.CharField()
+    threshold_pps = forms.CharField()
+    threshold_mbps = forms.CharField()
+    threshold_flows = forms.CharField()
+    enable_ban = forms.CharField()
+    
 class HostgroupForm(forms.Form):
     name = forms.CharField(label='Name', max_length=100)
-    description = forms.CharField(label='Description', widget=forms.Textarea)
+    description = forms.CharField(
+        label='Description',
+        widget=forms.Textarea(attrs={'rows': 2, 'cols': 40}),
+    )
 
 class NetworkForm(forms.ModelForm):
     net = forms.CharField(

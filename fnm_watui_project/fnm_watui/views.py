@@ -68,7 +68,7 @@ def add_hostgroup(req):
             error_message = f"Hostgroup creation error. Please try again. \n{response.text}"
             return error_message
 
-        # paramétrer la descirption
+        # paramétrer la description
         response2 = requests.put(
             f"{FNM_API_ENDPOINT}/hostgroup/{name}/description/{description}",
             auth=(FNM_API_USER, FNM_API_PASSWORD),
@@ -78,6 +78,50 @@ def add_hostgroup(req):
             error_message = f"Description setting error. Please try again. \n{response.text}"
             return error_message
     return False
+
+@login_required
+def modify_hostgroup(request, hostgroup):
+    if request.method == 'POST':
+        form = ModifyHostgroupForm(request.POST)
+        if form.is_valid():
+            # Obtenez les données du formulaire valides
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            threshold_pps = form.cleaned_data['threshold_pps']
+            threshold_mbps = form.cleaned_data['threshold_mbps']
+            threshold_flows = form.cleaned_data['threshold_flows']
+            enable_ban = form.cleaned_data['enable_ban']
+
+            if name == "global":
+                messages.error(request, "you can't modify the global hostgroup, it's a native group")
+                return redirect("hostgroup")
+            
+            keys = ["name", "description", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
+            values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban]
+            for i in range(0,5):
+                if i == "name":
+                    response = requests.put(
+                            f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
+                            auth=(FNM_API_USER, FNM_API_PASSWORD),
+                        )
+                else:
+                    response = requests.put(
+                        f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
+                        auth=(FNM_API_USER, FNM_API_PASSWORD),
+                    )
+            return redirect("hostgroup")
+    else:
+        initial_data = {
+            'name': hostgroup.name,
+            'description': hostgroup.description,
+            'threshold_pps': hostgroup.threshold_pps,
+            'threshold_mbps': hostgroup.threshold_mbps,
+            'threshold_flows': hostgroup.threshold_flows,
+            'enable_ban': hostgroup.enable_ban,
+        }
+        form = ModifyHostgroupForm(initial=initial_data)
+
+        return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
 
 @login_required
 def delete_hostgroup(request, name):
