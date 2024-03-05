@@ -1,0 +1,38 @@
+##################
+## API requests ##
+##################
+
+## Hostgroup ##
+# changer le nom de l'hostgroup test
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/name/<Nom_Hostgroup>
+
+# mettre enable ban à true
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/enable_ban/<true OU false>
+
+# mettre le threshold mbps à 10 
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/threshold_mbps/<Valeur_Mbps>
+
+# mettre le threshold ppps à 10 
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/threshold_pps/<Caleur_Pps>
+
+# mettre le threshold flow à 10 
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/threshold_flows/<Valeur_flows>
+
+# supprimer un hostgroup
+curl -X DELETE -u admin:techit1234 http://192.168.3.114:10007/hostgroup/<Nom_Groupe>
+
+## Networks
+# voir les networks listés (attention que cette interface n'envoie pas les networks à l'API, elle se base sur sa propre base de données pour ce qui est des networks)
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/networks_list
+
+
+## Flowspec
+# Voir les règles flowspec 
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/flowspec
+
+# ajouter une règle 
+
+# supprimer une règle 
+curl -X DELETE -u admin:techit1234 http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
+
+## 
