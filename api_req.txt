@@ -31,6 +31,9 @@ curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/networks_list
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/flowspec
 
 # ajouter une règle 
+il faut ajouter à la commande précédente un JSON comme :
+{"action_type": "discard", "destination_prefix": "10.0.0.54/32", "protocols": ["icmp"], "source_ports": [80], "source_prefix": "10.16.0.24/32"} 
+par exemple, mais dans l'URL il faut formater ça correctement donc c'est plus compliqué, dans le code python on passe directement le JSON dans la fonction "insert_flowspec_route"
 
 # supprimer une règle 
 curl -X DELETE -u admin:techit1234 http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549

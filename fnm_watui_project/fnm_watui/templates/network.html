@@ -10,6 +10,7 @@
   <h2 class="subtitle" style="color: black;">
     Allocated networks
   </h2>
+  <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p><br>
   <div class="block">
     {% for network in networks %}
       <div class="notification is-link" style="float: left; width: 92%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">

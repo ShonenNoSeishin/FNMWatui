@@ -14,6 +14,7 @@ import requests
 from django.http import JsonResponse
 
 import os
+import json
 
 # Set the FastNetMon API endpoint and authentication details
 DEFAULT_API_ENDPOINT = "http://127.0.0.1:10007"
@@ -182,10 +183,63 @@ def network_delete(request):
         w.delete()
     return redirect("/network/")
 
+from django.db import IntegrityError
+
+def check_other_fl_rules(request):
+    response = requests.get(
+        f"{FNM_API_ENDPOINT}/flowspec",
+        auth=(FNM_API_USER, FNM_API_PASSWORD),
+    )
+    
+    if response.status_code == 200:
+        api_flowspecs = response.json()["values"]
+        db_flowspecs = Flowspec.objects.all()
+        db_list = []
+        api_list = []
+        rules_not_in_db = []
+        for flowspec_data in api_flowspecs:
+            uid = flowspec_data.get('uuid', '')
+            announce_data = flowspec_data.get('announce', {})
+            action_type = announce_data.get('action_type', '')
+            destination_prefix = announce_data.get('destination_prefix', '')
+            protocols = announce_data.get('protocols', ['']) if announce_data.get('protocols') else ''
+            source_port = announce_data.get('source_ports', []) if announce_data.get('source_ports') else [-1] # -1 c'est "any"
+            destination_port = announce_data.get('destination_ports', []) if announce_data.get('destination_ports') else [-1] # -1 c'est "any"
+            source_prefix = announce_data.get('source_prefix', '')
+            
+            # s'il y a + d'une entrée en port ou protocoles, ça ne vient pas de l'application car ça ne le permet pas
+            if len(source_port) > 1 or len(destination_port) > 1 or protocols == '' :
+                rules_not_in_db.append([action_type, destination_prefix, source_port, source_prefix, destination_port, protocols, uid])
+            else:
+                api_list.append([action_type, destination_prefix, source_port[0], source_prefix, destination_port[0], protocols[0], uid])
+
+        for element in db_flowspecs:
+            db_list.append([element.action, element.dstip, element.srcprt, element.srcip, element.dstprt, element.protocol])
+
+        for i in api_list[:6:]:
+            if i not in db_list:
+                rules_not_in_db.append(i)
+
+        for i in rules_not_in_db:
+            if i[2] == -1 or i[2] == [-1]:
+                i[2] = "any"
+            if i[4] == -1 or i[4] == [-1]:
+                i[4] = "any"
+            if i[5] == '':
+                i[5] = "any"
+        return rules_not_in_db
+
+    else:
+        return None
+     
+
 @login_required
 def flowspec(request):
-    # A HTTP POST?
     form = FlowspecForm(user=request.user)
+    # Permet de recevoir les règles de l'API qui sont pas dans la DB
+    api_only_flowspecs = check_other_fl_rules(request)
+    #messages.error(request, api_only_flowspecs)
+
     if request.method == "POST":
         form = FlowspecForm(request.POST)
         # Have we been provided with a valid form?
@@ -195,9 +249,10 @@ def flowspec(request):
             flowspec.save()
             print("Flowspec passes validation")
             messages.success(request, "You have sucessfully commited a Flowspec rule.")
-    # Also populate the table with existing networks
     flowspecs = Flowspec.objects.filter(net__user=request.user)
-    return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs})
+    #print(flowspecs)
+    #messages.error(request, flowspecs)
+    return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
 
 @login_required
 def flowspec_toggle(request):
@@ -276,9 +331,20 @@ def insert_flowspec_route(rule):
         return True
     return False
 
+@login_required
+def api_flowspec_delete(request):
+    rule_uid = request.POST["api_flowspec_id"]
+    messages.error(request, rule_uid)
+    try:
+        response = requests.delete(
+            f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
+            auth=(FNM_API_USER, FNM_API_PASSWORD),
+        )
+    except:
+        pass
+    return redirect("/flowspec/")
 
 def remove_flowspec_route(rule):
-    
     # Make the API call to insert the flowspec route
     response = requests.get(
         f"{FNM_API_ENDPOINT}/flowspec",

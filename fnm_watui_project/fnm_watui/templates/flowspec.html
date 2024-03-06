@@ -11,31 +11,32 @@
 </h2>
 
 <div style="padding-left:280px">
+  <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue;"> <b><u>DB flowspec rules :</u></b>
   <table class="table has-background-primary is-align-self-center">
     <thead >
       <tr>
-        <th>Name</th>
-        <th>Source</th>
-        <th>Port</th>
-        <th>Destination</th>
-        <th>Port</th>
-        <th>Protocol</th>
-        <th>Action</th>
-        <th>Status</th>
-        <th>Delete</th>
+        <th class="has-text-centered">Name</th>
+        <th class="has-text-centered">Source</th>
+        <th class="has-text-centered">Port</th>
+        <th class="has-text-centered">Destination</th>
+        <th class="has-text-centered">Port</th>
+        <th class="has-text-centered">Protocol</th>
+        <th class="has-text-centered">Action</th>
+        <th class="has-text-centered">Status</th>
+        <th class="has-text-centered">Delete</th>
       </tr>
     </thead>
     <tbody>
       {% if flowspecs %}
         {% for flowspec in flowspecs %}
           <tr>
-              <td>{% if flowspec.name != '' %} {{ flowspec.name }} {% else %} - {% endif %}</td>
-              <td>{% if flowspec.srcip != '' %} {{ flowspec.srcip }} {% else %} any {% endif %}</td>
-              <td>{% if flowspec.srcprt != -1 %} {{ flowspec.srcprt }} {% else %} any {% endif %}</td>
-              <td>{% if flowspec.dstip != '' %} {{ flowspec.dstip }} {% else %} - {% endif %}</td>
-              <td>{% if flowspec.dstprt != -1 %} {{ flowspec.dstprt }} {% else %} any {% endif %}</td>
-              <td>{% if flowspec.protocol != '' %} {{ flowspec.protocol }} {% else %} any {% endif %}</td>
-              <td>{{ flowspec.action }}</td>
+              <td class="has-text-centered">{% if flowspec.name != '' %} {{ flowspec.name }} {% else %} - {% endif %}</td>
+              <td class="has-text-centered">{% if flowspec.srcip != '' %} {{ flowspec.srcip }} {% else %} any {% endif %}</td>
+              <td class="has-text-centered">{% if flowspec.srcprt != -1 %} {{ flowspec.srcprt }} {% else %} any {% endif %}</td>
+              <td class="has-text-centered">{% if flowspec.dstip != '' %} {{ flowspec.dstip }} {% else %} - {% endif %}</td>
+              <td class="has-text-centered">{% if flowspec.dstprt != -1 %} {{ flowspec.dstprt }} {% else %} any {% endif %}</td>
+              <td class="has-text-centered">{% if flowspec.protocol != '' %} {{ flowspec.protocol }} {% else %} any {% endif %}</td>
+              <td class="has-text-centered">{{ flowspec.action }}</td>
               <form action="/flowspec_toggle/" method="post">
                 {% csrf_token %}
                 <td>
@@ -81,7 +82,50 @@
 </form>
 </div>
 {% endif %}
+<div>
+  <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue; margin-left: 21%;"> <b><u>Additionnal API flowspec rules :</u></b>
+  <table class="table has-background-primary is-align-self-center">
+    <thead>
+      <tr>
+        <th class="has-text-centered">IP source</th>
+        <th class="has-text-centered">Source port</th>
+        <th class="has-text-centered">IP destination</th>
+        <th class="has-text-centered">Destination port</th>
+        <th class="has-text-centered">Protocol</th>
+        <th class="has-text-centered">Action</th>
+        <th class="has-text-centered">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if api_only_flowspecs %}
+        {% for rule in api_only_flowspecs %}
+          <tr>
+              <td class="has-text-centered">{{ rule.3 }}</td>
+              <td class="has-text-centered">{{ rule.2 }}</td>
+              <td class="has-text-centered">{{ rule.1 }}</td>
+              <td class="has-text-centered">{{ rule.4 }}</td>
+              <td class="has-text-centered">{{ rule.5 }}</td>
+              <td class="has-text-centered">{{ rule.0 }}</td>
+              <form action="/api_flowspec_delete/" method="post">
+                {% csrf_token %}
+                <td>
+                  <input type="hidden" id="{{ rule.6 }}" name="api_flowspec_id" value="{{ rule.6 }}">
+                  <button type="submit" value="Submit" style="margin-bottom: 2px; width: 10px; height: 20px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button is-danger">X</button>
+                </td>
+              </form>
+          </tr>
+        {% endfor %}
+      {% else %}
+          <td colspan="100%" class="has-text-centered">No rules yet.</td>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
 
+<div>
+<br>
+<h2 style="text-align: center; text-shadow: aliceblue; color: steelblue;"> <b><u>Generate new flowspec rule</u></b>
+</div>
 <div class="column is-4 is-offset-4">
         <form id="flowspec_form" method="POST" action="/flowspec/">
               {% csrf_token %}

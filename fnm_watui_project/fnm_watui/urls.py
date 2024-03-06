@@ -16,4 +16,5 @@ urlpatterns = [
     path("hostgroup", views.hostgroup, name="hostgroup"),
     path("modify_hostgroup/<str:hostgroup>/", views.modify_hostgroup, name="modify_hostgroup"),
     path('delete_hostgroup/<str:name>/', views.delete_hostgroup, name='delete_hostgroup'),
+    path('api_flowspec_delete/', views.api_flowspec_delete, name='api_flowspec_delete'),
 ]
