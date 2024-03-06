@@ -391,8 +391,66 @@ def remove_flowspec_route(rule):
     return False
 
 
-
 @login_required
 def user_logout(request):
     logout(request)
     return redirect("home")
+
+
+####### FONCTIONS PAS ENCORE UTILISEES #######
+def get_total_traffic():
+    json_data = requests.get(
+            f"{FNM_API_ENDPOINT}/total_traffic_counters",
+            auth=(FNM_API_USER, FNM_API_PASSWORD),
+        )
+
+    if not json_data["success"]:
+        totals = None
+    else:
+        totals = {
+            "in_mbps": json_data["values"][7]["value"] + json_data["values"][11]["value"] + json_data["values"][13]["value"],
+            "in_mbps_suffix": "mbps" if json_data["values"][7]["value"] <= 10240 else "gbps",
+            "in_pps": json_data["values"][0]["value"] + json_data["values"][4]["value"] + json_data["values"][6]["value"],
+            "in_pps_suffix": "pps" if json_data["values"][0]["value"] <= 10000 else "kpps",
+            "out_mbps": json_data["values"][3]["value"],
+            "out_mbps_suffix": "mbps" if json_data["values"][3]["value"] <= 10240 else "gbps",
+            "out_pps": json_data["values"][2]["value"],
+            "out_pps_suffix": "pps" if json_data["values"][2]["value"] <= 10000 else "kpps",
+        }
+    return totals
+
+def get_host_traffic():
+    json_data = requests.get(
+            f"{FNM_API_ENDPOINT}/host_counters",
+            auth=(FNM_API_USER, FNM_API_PASSWORD),
+        )
+
+    if not json_data["success"]:
+        totals = None
+
+    else:
+        return json_data["values"]
+
+def get_global_ban():
+    response = requests.get(
+            f"{FNM_API_ENDPOINT}/main/enable_ban",
+            auth=(FNM_API_USER, FNM_API_PASSWORD),
+        )
+    if response.status_code == 200:
+        return response["values"]
+    return False
+
+def set_global_ban(status):
+    response = requests.put(
+            f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
+            auth=(FNM_API_USER, FNM_API_PASSWORD),
+    )
+    if response.status_code == 200:
+        return True
+    return False
+
+def get_blackhole():
+    pass
+
+####### FONCTIONS PAS ENCORE UTILISEES (fin) #######
+

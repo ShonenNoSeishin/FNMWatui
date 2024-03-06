@@ -38,4 +38,32 @@ par exemple, mais dans l'URL il faut formater ça correctement donc c'est plus c
 # supprimer une règle 
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
 
-## 
+
+## enable/disable ban général
+# voir si c'est activé ou pas
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban
+
+# activer
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/true
+
+# désactiver
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/false
+
+
+## informations de trafic
+# Récupérer des infos sur le traffic réseau courant 
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/host_counters
+
+# Récupérer toutes les informations de trafic
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/total_traffic_counters
+
+
+## Blackholes 
+# Récupérer la liste des blackholes
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/blackhole
+
+# Configurer un blackhole pour ban une ip
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<IP>
+
+# Unban une ip blackhole
+curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<Blackhole_UID>
