@@ -19,7 +19,7 @@ curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/thresho
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/threshold_flows/<Valeur_flows>
 
 # supprimer un hostgroup
-curl -X DELETE -u admin:techit1234 http://192.168.3.114:10007/hostgroup/<Nom_Groupe>
+curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/<Nom_Groupe>
 
 ## Networks
 # voir les networks listés (attention que cette interface n'envoie pas les networks à l'API, elle se base sur sa propre base de données pour ce qui est des networks)
@@ -36,6 +36,6 @@ il faut ajouter à la commande précédente un JSON comme :
 par exemple, mais dans l'URL il faut formater ça correctement donc c'est plus compliqué, dans le code python on passe directement le JSON dans la fonction "insert_flowspec_route"
 
 # supprimer une règle 
-curl -X DELETE -u admin:techit1234 http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
+curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
 
 ## 
