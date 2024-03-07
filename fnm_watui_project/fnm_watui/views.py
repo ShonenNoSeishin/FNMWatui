@@ -27,430 +27,483 @@ FNM_API_PASSWORD = os.environ.get('FNM_API_PASSWORD',DEFAULT_API_PASSWORD)
 
 @login_required
 def home(request):
-    return render(request, "home.html")
+	return render(request, "home.html")
 
 @login_required
 def template(request):
-    return render(request, "template.html")
+	return render(request, "template.html")
+
+@login_required
+def dashboard(request):
+	total_traffic = get_total_traffic()
+	
+	traffic_data = [
+		("in_mbps", "fa-bar-chart", total_traffic["in_mbps"], total_traffic["in_mbps_suffix"], "INBOUND BYTES"),
+		("in_pps", "fa-area-chart", total_traffic["in_pps"], total_traffic["in_pps_suffix"], "INBOUND PACKETS"),
+		# On peut ajouter d'autres types
+	]
+
+	return render(request, "dashboard.html", {"traffic_data": traffic_data})
 
 
 @login_required
 def hostgroup(request):
-    hostgroups = requests.get(
-        f"{FNM_API_ENDPOINT}/hostgroup",
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
-    form = HostgroupForm(request.POST or None)
-    if request.method == 'POST':
-        error_message = add_hostgroup(request)
-        if error_message : 
-            return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form, 'error_message': error_message})
-        else:
-            return redirect("hostgroup")
-    else:
-        form = HostgroupForm()
-        return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
+	hostgroups = requests.get(
+		f"{FNM_API_ENDPOINT}/hostgroup",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	form = HostgroupForm(request.POST or None)
+	if request.method == 'POST':
+		error_message = add_hostgroup(request)
+		if error_message : 
+			return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form, 'error_message': error_message})
+		else:
+			return redirect("hostgroup")
+	else:
+		form = HostgroupForm()
+		return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
+
 
 @login_required
 def add_hostgroup(req):
-    form = HostgroupForm(req.POST)
-    if form.is_valid():
-        name = form.cleaned_data['name']
-        description = form.cleaned_data['description']
-        print(f"name : {name}, description : {description}")
-        error_message = f"name : {name}, description : {description}"
-        
-        # créer l'hostgroup
-        response = requests.put(
-            f"{FNM_API_ENDPOINT}/hostgroup/{name}",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
+	form = HostgroupForm(req.POST)
+	if form.is_valid():
+		name = form.cleaned_data['name']
+		description = form.cleaned_data['description']
+		print(f"name : {name}, description : {description}")
+		error_message = f"name : {name}, description : {description}"
+		
+		# créer l'hostgroup
+		response = requests.put(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
 
-        if response.status_code != 200:
-            error_message = f"Hostgroup creation error. Please try again. \n{response.text}"
-            return error_message
+		if response.status_code != 200:
+			error_message = f"Hostgroup creation error. Please try again. \n{response.text}"
+			return error_message
 
-        # paramétrer la description
-        response2 = requests.put(
-            f"{FNM_API_ENDPOINT}/hostgroup/{name}/description/{description}",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
+		# paramétrer la description
+		response2 = requests.put(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}/description/{description}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
 
-        if response2.status_code != 200:
-            error_message = f"Description setting error. Please try again. \n{response.text}"
-            return error_message
-    return False
+		if response2.status_code != 200:
+			error_message = f"Description setting error. Please try again. \n{response.text}"
+			return error_message
+	return False
 
 @login_required
 def modify_hostgroup(request, hostgroup):
-    if request.method == 'POST':
-        form = ModifyHostgroupForm(request.POST)
-        if form.is_valid():
-            # Obtenez les données du formulaire valides
-            name = form.cleaned_data['name']
-            description = form.cleaned_data['description']
-            threshold_pps = form.cleaned_data['threshold_pps']
-            threshold_mbps = form.cleaned_data['threshold_mbps']
-            threshold_flows = form.cleaned_data['threshold_flows']
-            enable_ban = form.cleaned_data['enable_ban']
+	if request.method == 'POST':
+		form = ModifyHostgroupForm(request.POST)
+		if form.is_valid():
+			# Obtenez les données du formulaire valides
+			name = form.cleaned_data['name']
+			description = form.cleaned_data['description']
+			threshold_pps = form.cleaned_data['threshold_pps']
+			threshold_mbps = form.cleaned_data['threshold_mbps']
+			threshold_flows = form.cleaned_data['threshold_flows']
+			enable_ban = form.cleaned_data['enable_ban']
 
-            if name == "global":
-                messages.error(request, "you can't modify the global hostgroup, it's a native group")
-                return redirect("hostgroup")
-            
-            keys = ["name", "description", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
-            values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
-            for i in range(0,6):
-                if keys[i] == "name":
-                    response = requests.put(
-                            f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
-                            auth=(FNM_API_USER, FNM_API_PASSWORD),
-                        )
-                else:
-                    response = requests.put(
-                        f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
-                        auth=(FNM_API_USER, FNM_API_PASSWORD),
-                    )
+			if name == "global":
+				messages.error(request, "you can't modify the global hostgroup, it's a native group")
+				return redirect("hostgroup")
+			
+			keys = ["name", "description", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
+			values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
+			for i in range(0,6):
+				if keys[i] == "name":
+					response = requests.put(
+							f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
+							auth=(FNM_API_USER, FNM_API_PASSWORD),
+						)
+				else:
+					response = requests.put(
+						f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
+						auth=(FNM_API_USER, FNM_API_PASSWORD),
+					)
 
-                if response.status_code != 200:
-                    messages.error(request, response.text)
-            return redirect("hostgroup")
-    else:
-        initial_data = {
-            'name': hostgroup.name,
-            'description': hostgroup.description,
-            'threshold_pps': hostgroup.threshold_pps,
-            'threshold_mbps': hostgroup.threshold_mbps,
-            'threshold_flows': hostgroup.threshold_flows,
-            'enable_ban': hostgroup.enable_ban,
-        }
-        form = ModifyHostgroupForm(initial=initial_data)
+				if response.status_code != 200:
+					messages.error(request, response.text)
+			return redirect("hostgroup")
+	else:
+		initial_data = {
+			'name': hostgroup.name,
+			'description': hostgroup.description,
+			'threshold_pps': hostgroup.threshold_pps,
+			'threshold_mbps': hostgroup.threshold_mbps,
+			'threshold_flows': hostgroup.threshold_flows,
+			'enable_ban': hostgroup.enable_ban,
+		}
+		form = ModifyHostgroupForm(initial=initial_data)
 
-        return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
+		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
 
 @login_required
 def delete_hostgroup(request, name):
-    if name == "global":
-        messages.error(request, "you can't delete the global hostgroup, it's a native group")
-        return redirect("hostgroup")
-    else:
-        # Supprimer l'hostgroup
-        response = requests.delete(
-            f"{FNM_API_ENDPOINT}/hostgroup/{name}",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
+	if name == "global":
+		messages.error(request, "you can't delete the global hostgroup, it's a native group")
+		return redirect("hostgroup")
+	else:
+		# Supprimer l'hostgroup
+		response = requests.delete(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
 
-        if response.status_code == 200:
-            return redirect("hostgroup")
-        else:
-            messages.error(request, f"Hostgroup deletion error. Please try again. \n{response.text}")
-            return redirect("hostgroup")
+		if response.status_code == 200:
+			return redirect("hostgroup")
+		else:
+			messages.error(request, f"Hostgroup deletion error. Please try again. \n{response.text}")
+			return redirect("hostgroup")
 
 @login_required
 def help(request):
-    return render(request, "help.html")
+	return render(request, "help.html")
 
 
 @login_required
 def network(request):
-    # A HTTP POST?
-    if request.method == "POST":
-        form = NetworkForm(request.POST)
+	# A HTTP POST?
+	if request.method == "POST":
+		form = NetworkForm(request.POST)
 
-        # Have we been provided with a valid form?
-        if form.is_valid():
-            # Save the new category to the database.
-            network = form.save(commit=False)
-            network.save()
-            messages.success(request, "You have successfully assigned a network.")
-            # Redirect to home (/)
-            return redirect("/network/")
-        else:
-            # The supplied form contained errors - just print them to the terminal.
-            messages.error(request, form.errors)
-            return redirect("/network/")
-    else:
-        # If the request was not a POST, display the form to enter details.
-        form = NetworkForm()
-        # Also populate the table with existing networks
-        networks = Network.objects.all()
-    return render(request, "network.html", {"form": form, "networks": networks})
+		# Have we been provided with a valid form?
+		if form.is_valid():
+			# Save the new category to the database.
+			network = form.save(commit=False)
+			network.save()
+			messages.success(request, "You have successfully assigned a network.")
+			# Redirect to home (/)
+			return redirect("/network/")
+		else:
+			# The supplied form contained errors - just print them to the terminal.
+			messages.error(request, form.errors)
+			return redirect("/network/")
+	else:
+		# If the request was not a POST, display the form to enter details.
+		form = NetworkForm()
+		# Also populate the table with existing networks
+		networks = Network.objects.all()
+	return render(request, "network.html", {"form": form, "networks": networks})
 
 @login_required
 def network_delete(request):
-    if request.method == "POST":
-        w = Network.objects.get(id=request.POST["network_id"])
-        w.delete()
-    return redirect("/network/")
+	if request.method == "POST":
+		w = Network.objects.get(id=request.POST["network_id"])
+		w.delete()
+	return redirect("/network/")
 
 from django.db import IntegrityError
 
 def check_other_fl_rules(request):
-    response = requests.get(
-        f"{FNM_API_ENDPOINT}/flowspec",
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
-    
-    if response.status_code == 200:
-        api_flowspecs = response.json()["values"]
-        db_flowspecs = Flowspec.objects.all()
-        db_list = []
-        api_list = []
-        rules_not_in_db = []
-        for flowspec_data in api_flowspecs:
-            uid = flowspec_data.get('uuid', '')
-            announce_data = flowspec_data.get('announce', {})
-            action_type = announce_data.get('action_type', '')
-            destination_prefix = announce_data.get('destination_prefix', '')
-            protocols = announce_data.get('protocols', ['']) if announce_data.get('protocols') else ''
-            source_port = announce_data.get('source_ports', []) if announce_data.get('source_ports') else [-1] # -1 c'est "any"
-            destination_port = announce_data.get('destination_ports', []) if announce_data.get('destination_ports') else [-1] # -1 c'est "any"
-            source_prefix = announce_data.get('source_prefix', '')
-            
-            # s'il y a + d'une entrée en port ou protocoles, ça ne vient pas de l'application car ça ne le permet pas
-            if len(source_port) > 1 or len(destination_port) > 1 or protocols == '' :
-                rules_not_in_db.append([action_type, destination_prefix, source_port, source_prefix, destination_port, protocols, uid])
-            else:
-                api_list.append([action_type, destination_prefix, source_port[0], source_prefix, destination_port[0], protocols[0], uid])
+	response = requests.get(
+		f"{FNM_API_ENDPOINT}/flowspec",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	
+	if response.status_code == 200:
+		api_flowspecs = response.json()["values"]
+		db_flowspecs = Flowspec.objects.all()
+		db_list = []
+		api_list = []
+		rules_not_in_db = []
+		for flowspec_data in api_flowspecs:
+			uid = flowspec_data.get('uuid', '')
+			announce_data = flowspec_data.get('announce', {})
+			action_type = announce_data.get('action_type', '')
+			destination_prefix = announce_data.get('destination_prefix', '')
+			protocols = announce_data.get('protocols', ['']) if announce_data.get('protocols') else ''
+			source_port = announce_data.get('source_ports', []) if announce_data.get('source_ports') else [-1] # -1 c'est "any"
+			destination_port = announce_data.get('destination_ports', []) if announce_data.get('destination_ports') else [-1] # -1 c'est "any"
+			source_prefix = announce_data.get('source_prefix', '')
+			
+			# s'il y a + d'une entrée en port ou protocoles, ça ne vient pas de l'application car ça ne le permet pas
+			if len(source_port) > 1 or len(destination_port) > 1 or protocols == '' :
+				rules_not_in_db.append([action_type, destination_prefix, source_port, source_prefix, destination_port, protocols, uid])
+			else:
+				api_list.append([action_type, destination_prefix, source_port[0], source_prefix, destination_port[0], protocols[0], uid])
 
-        for element in db_flowspecs:
-            db_list.append([element.action, element.dstip, element.srcprt, element.srcip, element.dstprt, element.protocol])
+		for element in db_flowspecs:
+			db_list.append([element.action, element.dstip, element.srcprt, element.srcip, element.dstprt, element.protocol])
 
-        for i in api_list[:6:]:
-            if i not in db_list:
-                rules_not_in_db.append(i)
+		for i in api_list[:6:]:
+			if i not in db_list:
+				rules_not_in_db.append(i)
 
-        for i in rules_not_in_db:
-            if i[2] == -1 or i[2] == [-1]:
-                i[2] = "any"
-            if i[4] == -1 or i[4] == [-1]:
-                i[4] = "any"
-            if i[5] == '':
-                i[5] = "any"
-        return rules_not_in_db
+		for i in rules_not_in_db:
+			if i[2] == -1 or i[2] == [-1]:
+				i[2] = "any"
+			if i[4] == -1 or i[4] == [-1]:
+				i[4] = "any"
+			if i[5] == '':
+				i[5] = "any"
+		return rules_not_in_db
 
-    else:
-        return None
-     
+	else:
+		return None
+	 
 
 @login_required
 def flowspec(request):
-    form = FlowspecForm(user=request.user)
-    # Permet de recevoir les règles de l'API qui sont pas dans la DB
-    api_only_flowspecs = check_other_fl_rules(request)
-    #messages.error(request, api_only_flowspecs)
+	form = FlowspecForm(user=request.user)
+	# Permet de recevoir les règles de l'API qui sont pas dans la DB
+	api_only_flowspecs = check_other_fl_rules(request)
+	#messages.error(request, api_only_flowspecs)
 
-    if request.method == "POST":
-        form = FlowspecForm(request.POST)
-        # Have we been provided with a valid form?
-        if form.is_valid():
-            # Save the new category to the database.
-            flowspec = form.save(commit=False)
-            flowspec.save()
-            print("Flowspec passes validation")
-            messages.success(request, "You have sucessfully commited a Flowspec rule.")
-    flowspecs = Flowspec.objects.filter(net__user=request.user)
-    #print(flowspecs)
-    #messages.error(request, flowspecs)
-    return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
+	if request.method == "POST":
+		form = FlowspecForm(request.POST)
+		# Have we been provided with a valid form?
+		if form.is_valid():
+			# Save the new category to the database.
+			flowspec = form.save(commit=False)
+			flowspec.save()
+			print("Flowspec passes validation")
+			messages.success(request, "You have sucessfully commited a Flowspec rule.")
+	flowspecs = Flowspec.objects.filter(net__user=request.user)
+	#print(flowspecs)
+	#messages.error(request, flowspecs)
+	return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
 
 @login_required
 def flowspec_toggle(request):
-    if request.method == "POST":
-        w = Flowspec.objects.get(id=request.POST["flowspec_id"])
-        if w.active == True:
-            if remove_flowspec_route(w):
-                w.active = False
-                w.save()
-        elif w.active == False:
-            if insert_flowspec_route(w):
-                w.active = True
-                w.save()
-    return redirect("/flowspec/")
+	if request.method == "POST":
+		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
+		if w.active == True:
+			if remove_flowspec_route(w):
+				w.active = False
+				w.save()
+		elif w.active == False:
+			if insert_flowspec_route(w):
+				w.active = True
+				w.save()
+	return redirect("/flowspec/")
 
 @login_required
 def flowspec_redeploy(request):
-    if request.method == "POST":
-      rules = Flowspec.objects.filter(net__user=request.user)
-      for rule in rules:
-          if rule.active == True:
-              insert_flowspec_route(rule)
-    return redirect("/flowspec/")
+	if request.method == "POST":
+	  rules = Flowspec.objects.filter(net__user=request.user)
+	  for rule in rules:
+		  if rule.active == True:
+			  insert_flowspec_route(rule)
+	return redirect("/flowspec/")
 
 @login_required
 def flowspec_flush(request):
-    if request.method == "POST":
-      #nets = Network.objects.all(id__=request.user)
-      rules = Flowspec.objects.filter(net__user=request.user)
-      for rule in rules: 
-          if remove_flowspec_route(rule):
-              rule.active = False
-              rule.save()
-    return redirect("/flowspec/")
+	if request.method == "POST":
+	  #nets = Network.objects.all(id__=request.user)
+	  rules = Flowspec.objects.filter(net__user=request.user)
+	  for rule in rules: 
+		  if remove_flowspec_route(rule):
+			  rule.active = False
+			  rule.save()
+	return redirect("/flowspec/")
 
 @login_required
 def flowspec_delete(request):
-    if request.method == "POST":
-        w = Flowspec.objects.get(id=request.POST["flowspec_id"])
-        if not w.active:
-            w.delete()
-        else:
-            messages.warning(
-                request,
-                "You need to disable the Flowspec rule first.",
-                extra_tags="flowspec_table",
-            )
-    return redirect("/flowspec/")
+	if request.method == "POST":
+		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
+		if not w.active:
+			w.delete()
+		else:
+			messages.warning(
+				request,
+				"You need to disable the Flowspec rule first.",
+				extra_tags="flowspec_table",
+			)
+	return redirect("/flowspec/")
 
 def insert_flowspec_route(rule):
 
-    # Set the flowspec mandatory route details
-    route = {
-        "destination_prefix": rule.dstip,
-        "action_type": rule.action,
-    }
+	# Set the flowspec mandatory route details
+	route = {
+		"destination_prefix": rule.dstip,
+		"action_type": rule.action,
+	}
 
-    # add the flowspec optional route details
-    if rule.srcip:
-        route["source_prefix"] = rule.srcip
-    if rule.srcprt > 0:
-        route["source_ports"] = [rule.srcprt]
-    if rule.dstprt > 0:
-        route["destination_ports"] = [rule.dstprt]
-    if rule.protocol:
-        route["protocols"] = [rule.protocol]
+	# add the flowspec optional route details
+	if rule.srcip:
+		route["source_prefix"] = rule.srcip
+	if rule.srcprt > 0:
+		route["source_ports"] = [rule.srcprt]
+	if rule.dstprt > 0:
+		route["destination_ports"] = [rule.dstprt]
+	if rule.protocol:
+		route["protocols"] = [rule.protocol]
 
-    # Make the API call to insert the flowspec route
-    response = requests.put(
-        f"{FNM_API_ENDPOINT}/flowspec",
-        json=route,
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
-    # Check if the API call was successful
-    if response.status_code == 200:
-        return True
-    return False
+	# Make the API call to insert the flowspec route
+	response = requests.put(
+		f"{FNM_API_ENDPOINT}/flowspec",
+		json=route,
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	# Check if the API call was successful
+	if response.status_code == 200:
+		return True
+	return False
 
 @login_required
 def api_flowspec_delete(request):
-    rule_uid = request.POST["api_flowspec_id"]
-    messages.error(request, rule_uid)
-    try:
-        response = requests.delete(
-            f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
-    except:
-        pass
-    return redirect("/flowspec/")
+	rule_uid = request.POST["api_flowspec_id"]
+	messages.error(request, rule_uid)
+	try:
+		response = requests.delete(
+			f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	except:
+		pass
+	return redirect("/flowspec/")
 
 def remove_flowspec_route(rule):
-    # Make the API call to insert the flowspec route
-    response = requests.get(
-        f"{FNM_API_ENDPOINT}/flowspec",
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
+	# Make the API call to insert the flowspec route
+	response = requests.get(
+		f"{FNM_API_ENDPOINT}/flowspec",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
 
-    # Set the flowspec mandatory route details
-    route = {
-        "destination_prefix": rule.dstip,
-        "action_type": rule.action,
-    }
+	# Set the flowspec mandatory route details
+	route = {
+		"destination_prefix": rule.dstip,
+		"action_type": rule.action,
+	}
 
-    # add the flowspec optional route details
-    if rule.srcip:
-        route["source_prefix"] = rule.srcip
-    if rule.srcprt > 0:
-        route["source_ports"] = [rule.srcprt]
-    if rule.dstprt > 0:
-        route["destination_ports"] = [rule.dstprt]
-    if rule.protocol:
-        route["protocols"] = [rule.protocol]
+	# add the flowspec optional route details
+	if rule.srcip:
+		route["source_prefix"] = rule.srcip
+	if rule.srcprt > 0:
+		route["source_ports"] = [rule.srcprt]
+	if rule.dstprt > 0:
+		route["destination_ports"] = [rule.dstprt]
+	if rule.protocol:
+		route["protocols"] = [rule.protocol]
 
-    print(route)
+	print(route)
 
-    uuid = None
-    for value in response.json()["values"]:
-        if value["announce"] == route:
-            uuid = value["uuid"]
-            break
-    else:
-        # notfound
-        return True
+	uuid = None
+	for value in response.json()["values"]:
+		if value["announce"] == route:
+			uuid = value["uuid"]
+			break
+	else:
+		# notfound
+		return True
 
-    print(uuid)
+	print(uuid)
 
-    response = requests.delete(
-        f"{FNM_API_ENDPOINT}/flowspec/{uuid}",
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
+	response = requests.delete(
+		f"{FNM_API_ENDPOINT}/flowspec/{uuid}",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
 
-    # Check if the API call was successful
-    if response.status_code == 200:
-        return True
-    return False
-
+	# Check if the API call was successful
+	if response.status_code == 200:
+		return True
+	return False
 
 @login_required
 def user_logout(request):
-    logout(request)
-    return redirect("home")
+	logout(request)
+	return redirect("home")
 
 
 ####### FONCTIONS PAS ENCORE UTILISEES #######
 def get_total_traffic():
-    json_data = requests.get(
-            f"{FNM_API_ENDPOINT}/total_traffic_counters",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
-
-    if not json_data["success"]:
-        totals = None
-    else:
-        totals = {
-            "in_mbps": json_data["values"][7]["value"] + json_data["values"][11]["value"] + json_data["values"][13]["value"],
-            "in_mbps_suffix": "mbps" if json_data["values"][7]["value"] <= 10240 else "gbps",
-            "in_pps": json_data["values"][0]["value"] + json_data["values"][4]["value"] + json_data["values"][6]["value"],
-            "in_pps_suffix": "pps" if json_data["values"][0]["value"] <= 10000 else "kpps",
-            "out_mbps": json_data["values"][3]["value"],
-            "out_mbps_suffix": "mbps" if json_data["values"][3]["value"] <= 10240 else "gbps",
-            "out_pps": json_data["values"][2]["value"],
-            "out_pps_suffix": "pps" if json_data["values"][2]["value"] <= 10000 else "kpps",
-        }
-    return totals
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/total_traffic_counters",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if not json_data["success"]:
+		totals = None
+	else:
+		totals = {
+			"in_mbps": json_data["values"][7]["value"] + json_data["values"][11]["value"] + json_data["values"][13]["value"],
+			"in_mbps_suffix": "mbps" if json_data["values"][7]["value"] <= 10240 else "gbps",
+			"in_pps": json_data["values"][0]["value"] + json_data["values"][4]["value"] + json_data["values"][6]["value"],
+			"in_pps_suffix": "pps" if json_data["values"][0]["value"] <= 10000 else "kpps",
+			"out_mbps": json_data["values"][3]["value"],
+			"out_mbps_suffix": "mbps" if json_data["values"][3]["value"] <= 10240 else "gbps",
+			"out_pps": json_data["values"][2]["value"],
+			"out_pps_suffix": "pps" if json_data["values"][2]["value"] <= 10000 else "kpps",
+		}
+	return totals
 
 def get_host_traffic():
-    json_data = requests.get(
-            f"{FNM_API_ENDPOINT}/host_counters",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/host_counters",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if not json_data["success"]:
+		totals = None
 
-    if not json_data["success"]:
-        totals = None
-
-    else:
-        return json_data["values"]
+	else:
+		return json_data["values"]
 
 def get_global_ban():
-    response = requests.get(
-            f"{FNM_API_ENDPOINT}/main/enable_ban",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-        )
-    if response.status_code == 200:
-        return response["values"]
-    return False
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/main/enable_ban",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if response.status_code == 200:
+		return json_data["values"]
+	return False
 
 def set_global_ban(status):
-    response = requests.put(
-            f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
-            auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
-    if response.status_code == 200:
-        return True
-    return False
+	response = requests.put(
+			f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	if response.status_code == 200:
+		return True
+	return False
 
 def get_blackhole():
-    pass
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/blackhole",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	if response.status_code == 200:
+		json_data = response.json()
+		return json_data["values"]
+	return False
+
+def set_blackhole(ip_to_blackhole):
+	response = requests.put(
+			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	if response.status_code == 200:
+		return True
+	return False
+
+def unban_ip_blackhole(ip_to_unban):
+	blackholes = get_blackhole()
+	for i in blackholes:
+		if i.get('ip', '') == f"{ip_to_unban}/32":
+			blackhole_uuid = i.get('uuid','')
+			break
+	response = requests.delete(
+			f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	if response.status_code == 200:
+		return True
+	return False
+
+def get_hostgroup_info(hostgroup_name):
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup_name}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	if response.status_code == 200:
+		json_data = response.json()
+		return json_data["values"]
+	return False
 
 ####### FONCTIONS PAS ENCORE UTILISEES (fin) #######
 

@@ -14,7 +14,7 @@
   <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue;"> <b><u>DB flowspec rules :</u></b>
   <table class="table has-background-primary is-align-self-center">
     <thead >
-      <tr>
+      <tr style="background-color:  cornflowerblue;">
         <th class="has-text-centered">Name</th>
         <th class="has-text-centered">Source</th>
         <th class="has-text-centered">Port</th>
@@ -29,7 +29,7 @@
     <tbody>
       {% if flowspecs %}
         {% for flowspec in flowspecs %}
-          <tr>
+          <tr style="background-color:  cornflowerblue;">
               <td class="has-text-centered">{% if flowspec.name != '' %} {{ flowspec.name }} {% else %} - {% endif %}</td>
               <td class="has-text-centered">{% if flowspec.srcip != '' %} {{ flowspec.srcip }} {% else %} any {% endif %}</td>
               <td class="has-text-centered">{% if flowspec.srcprt != -1 %} {{ flowspec.srcprt }} {% else %} any {% endif %}</td>
@@ -54,7 +54,7 @@
           </tr>
         {% endfor %}
       {% else %}
-          <td colspan="100%" class="has-text-centered">No rules yet.</td>
+          <td colspan="100%" class="has-text-centered" style="background-color:  cornflowerblue;">No rules yet.</td>
       {% endif %}
     </tbody>
   </table>
@@ -86,7 +86,7 @@
   <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue; margin-left: 21%;"> <b><u>Additionnal API flowspec rules :</u></b>
   <table class="table has-background-primary is-align-self-center">
     <thead>
-      <tr>
+      <tr style="background-color:  cornflowerblue;">
         <th class="has-text-centered">IP source</th>
         <th class="has-text-centered">Source port</th>
         <th class="has-text-centered">IP destination</th>
@@ -99,7 +99,7 @@
     <tbody>
       {% if api_only_flowspecs %}
         {% for rule in api_only_flowspecs %}
-          <tr>
+          <tr style="background-color:  cornflowerblue;">
               <td class="has-text-centered">{{ rule.3 }}</td>
               <td class="has-text-centered">{{ rule.2 }}</td>
               <td class="has-text-centered">{{ rule.1 }}</td>
@@ -116,7 +116,7 @@
           </tr>
         {% endfor %}
       {% else %}
-          <td colspan="100%" class="has-text-centered">No rules yet.</td>
+          <td colspan="100%" class="has-text-centered" style="background-color:  cornflowerblue;">No rules yet.</td>
       {% endif %}
     </tbody>
   </table>

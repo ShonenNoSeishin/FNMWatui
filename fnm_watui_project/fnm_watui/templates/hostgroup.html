@@ -27,8 +27,8 @@
       <p> Thresholds <br> (TCP + UDP + ICMP, both directions)</p>
       {% for hostgroup in hostgroups %}
       <div class="table-container">
-        <table border="1" class="table" id="editable-table">
-          <tr>
+        <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue;">
+          <tr style="background-color:  cornflowerblue;">
               <th class="has-text-centered">Name</th>
               <th class="has-text-centered">Description</th>
               <th class="has-text-centered">Treshold pps</th>
@@ -40,7 +40,7 @@
           </tr>
           <form method="post" action="{% url 'modify_hostgroup' hostgroup.name %}">
             {% csrf_token %}
-            <tr>
+            <tr style="background-color:  cornflowerblue;">
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="name" value="{{ hostgroup.name }}" /></td>
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="description" value="{{ hostgroup.description }}" /></td>
                 <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_pps" value="{{ hostgroup.threshold_pps }}" /></td>

@@ -67,3 +67,8 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<IP>
 
 # Unban une ip blackhole
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<Blackhole_UID>
+
+
+## license
+# voir les info de la license FNM
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/license

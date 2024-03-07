@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="flex-container" style="display: flex; flex-direction: column; justify-content: space-between;">
+	<div class="flex-item" style="margin-top:-30%;  width: 20%; margin-left: 	40%; margin-bottom: -10%;">
+		<h1 class="title" style=" color:  black;">
+		  <b>Dashboard</b>
+		</h1>
+		  {% if messages %}
+		    <ul class="messages">
+		      {% for message in messages %}
+		        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+		      {% endfor %}
+		    </ul>
+		  {% endif %}
+	</div>
+		<div class="flex-item" style="width: 70%; margin-left: 15%; margin-top: -15%;">
+	  	{% if request.user.is_authenticated %}
+	    <h2 class="subtitle" style="color: black; font-size: 30px;"> Traffic </h2>
+	    <div>
+	    {% for traffic_type, icon, value, suffix, label in traffic_data %}
+	      <div class="col-sm-3" style="color: black;">
+	        <div class="panel panel-default">
+	          <div class="panel-heading">
+	            <div class="row">
+	              <div class="col-xs-3">
+	                <i class="fa {{ icon }} fa-5x"></i>
+	              </div>
+	              <div class="col-xs-9 text-right" style="color: black;">
+	                <div class="huge" style="color: slategrey;">{{ value }} {{ suffix }}</div>
+	                <div><strong>{{ label }}</strong></div>
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+	      </div>
+	    {% endfor %}
+	 </div>
+	  </div>
+	  {% else %}
+	    <h1 class="title">You are not logged in</h1>
+	    <p><a href="{% url 'login' %}">Log In</a></p>
+	{% endif %}
+</div>
+{% endblock %}
