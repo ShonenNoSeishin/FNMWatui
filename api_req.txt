@@ -39,7 +39,7 @@ par exemple, mais dans l'URL il faut formater ça correctement donc c'est plus c
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
 
 
-## enable/disable ban général
+## enable/disable le default ban général
 # voir si c'est activé ou pas
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban
 
@@ -48,6 +48,17 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/true
 
 # désactiver
 curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/false
+
+
+## enable/disable le default unban général
+# voir si c'est activé ou pas
+curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled
+
+# activer
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled/true
+
+# désactiver
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled/false
 
 
 ## informations de trafic

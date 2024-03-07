@@ -1,8 +1,22 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
+<head>
+   <style type="text/css">
+		.panel-success{
+		    color: limegreen;
+		    background-color: limegreen;
+		}
+
+		.panel-primary{
+		    color: red;
+		    background-color: red;
+		}
+	</style>
+</head>
 <div class="flex-container" style="display: flex; flex-direction: column; justify-content: space-between;">
-	<div class="flex-item" style="margin-top:-30%;  width: 20%; margin-left: 	40%; margin-bottom: -10%;">
+	<div class="flex-item" style="margin-top:-25%;  width: 20%; margin-left: 	40%; margin-bottom: -10%;">
+		{% if request.user.is_authenticated %}
 		<h1 class="title" style=" color:  black;">
 		  <b>Dashboard</b>
 		</h1>
@@ -14,28 +28,65 @@
 		    </ul>
 		  {% endif %}
 	</div>
-		<div class="flex-item" style="width: 70%; margin-left: 15%; margin-top: -15%;">
-	  	{% if request.user.is_authenticated %}
-	    <h2 class="subtitle" style="color: black; font-size: 30px;"> Traffic </h2>
-	    <div>
-	    {% for traffic_type, icon, value, suffix, label in traffic_data %}
-	      <div class="col-sm-3" style="color: black;">
-	        <div class="panel panel-default">
-	          <div class="panel-heading">
+	<div class="flex-item" style="width: 70%; margin-left: 15%; margin-top: 13%; justify-content: space-between; flex-wrap: wrap; ">
+		<div class="flex-item" style="flex-wrap: wrap; display: flex; justify-content: space-between; width: 90%;">
+	    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Enable or disable automated banning and unbanning </h2>
+	    <div class="panel-heading" style="width: 30%; margin-left: 10%;">
+	    	<form id="banForm" method="post" action="{% url 'set_global_ban' %}">
+	    		{% csrf_token %}
+	        <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}">
+        <button type="submit" class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}">
 	            <div class="row">
-	              <div class="col-xs-3">
-	                <i class="fa {{ icon }} fa-5x"></i>
-	              </div>
-	              <div class="col-xs-9 text-right" style="color: black;">
-	                <div class="huge" style="color: slategrey;">{{ value }} {{ suffix }}</div>
-	                <div><strong>{{ label }}</strong></div>
-	              </div>
+	                <div class="col-xs-9 text-right">
+	                    <div class="huge" style="color:white;">Bans</div>
+	                    <div style="color: 	white"><strong>{% if global_ban_status %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+	                </div>
 	            </div>
-	          </div>
 	        </div>
-	      </div>
-	    {% endfor %}
-	 </div>
+	      </button>
+	      </form>
+	    </div>
+	    <div class="panel-heading" style="width: 30%;">
+	    	<form id="unbanForm" method="post" action="{% url 'set_global_unban' %}">
+	    		{% csrf_token %}
+	    		<div class="{% if global_unban_status %}panel-success{% else %}panel-primary{% endif %}">
+        <button type="submit" class="{% if global_unban_status %}panel-success{% else %}panel-primary{% endif %}">
+	            <div class="row">
+	                <div class="col-xs-9 text-right">
+	                    <div class="huge" style="color:white;">UnBans</div>
+	                    <div style="color: 	white"><strong>{% if global_unban_status %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+	                </div>
+	            </div>
+	        </div>
+	        </button>
+	      </form>
+	    </div>
+		</div>
+		<br>
+			<div class="flex-item">
+		    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> General traffic </h2>
+		    <div>
+		    {% for traffic_type, icon, value, suffix, label in traffic_data %}
+		      <div class="col-sm-3" style="color: black;">
+		        <div class="panel panel-default">
+		          <div class="panel-heading">
+		            <div class="row">
+		              <div class="col-xs-3">
+		                <i class="fa {{ icon }} fa-5x"></i>
+		              </div>
+		              <div class="col-xs-9 text-right" style="color: black;">
+		                <div class="huge" style="color: slategrey;">{{ value }} {{ suffix }}</div>
+		                <div><strong>{{ label }}</strong></div>
+		              </div>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		    {% endfor %}
+		 </div>
+		</div>
+	 
+
 	  </div>
 	  {% else %}
 	    <h1 class="title">You are not logged in</h1>

@@ -1,3 +1,4 @@
+<style type="text/css">
 ul.messages li.error {
   color: red;
 }
@@ -35,3 +36,15 @@ align-items: center;
 .h1, h1, p, h2, header, a{
   color: black;
 }
+
+.panel-success{
+    color: green;
+    background-color: green;
+}
+
+.panel-primary{
+    color: red;
+    background-color: red;
+}
+
+</style>

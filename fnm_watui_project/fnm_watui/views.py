@@ -36,6 +36,8 @@ def template(request):
 @login_required
 def dashboard(request):
 	total_traffic = get_total_traffic()
+	global_ban_status = get_global_ban()
+	global_unban_status = get_global_unban()
 	
 	traffic_data = [
 		("in_mbps", "fa-bar-chart", total_traffic["in_mbps"], total_traffic["in_mbps_suffix"], "INBOUND BYTES"),
@@ -43,7 +45,7 @@ def dashboard(request):
 		# On peut ajouter d'autres types
 	]
 
-	return render(request, "dashboard.html", {"traffic_data": traffic_data})
+	return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status})
 
 
 @login_required
@@ -450,17 +452,53 @@ def get_global_ban():
 		)
 	json_data = response.json()
 	if response.status_code == 200:
-		return json_data["values"]
+		return json_data["value"]
 	return False
 
-def set_global_ban(status):
-	response = requests.put(
-			f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
+def get_global_unban():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/main/unban_enabled",
 			auth=(FNM_API_USER, FNM_API_PASSWORD),
-	)
+		)
+	json_data = response.json()
 	if response.status_code == 200:
-		return True
+		return json_data["value"]
 	return False
+
+@login_required	
+def set_global_ban(request):
+	if request.method == "POST":
+		# voir le status actuel
+		boolean = get_global_ban()
+		if boolean:
+			status = "false"
+		else:
+			status = "true"
+
+		response = requests.put(
+				f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code == 200:
+			return True
+		return False
+
+@login_required
+def set_global_unban(request):
+	if request.method == "POST":
+		# voir le status actuel
+		boolean = get_global_unban()
+		if boolean:
+			status = "false"
+		else:
+			status = "true"
+		response = requests.put(
+				f"{FNM_API_ENDPOINT}/main/unban_enabled/{status}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code == 200:
+			return True
+		return False
 
 def get_blackhole():
 	response = requests.get(

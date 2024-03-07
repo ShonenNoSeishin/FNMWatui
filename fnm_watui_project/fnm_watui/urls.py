@@ -18,4 +18,6 @@ urlpatterns = [
     path("modify_hostgroup/<str:hostgroup>/", views.modify_hostgroup, name="modify_hostgroup"),
     path('delete_hostgroup/<str:name>/', views.delete_hostgroup, name='delete_hostgroup'),
     path('api_flowspec_delete/', views.api_flowspec_delete, name='api_flowspec_delete'),
+    path('set_global_ban/', views.set_global_ban, name='set_global_ban'),
+    path('set_global_unban/', views.set_global_unban, name='set_global_unban'),
 ]
