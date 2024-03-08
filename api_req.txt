@@ -62,7 +62,7 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled/fal
 
 
 ## informations de trafic
-# Récupérer des infos sur le traffic réseau courant 
+# Récupérer le trafic des différents hosts actifs
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/host_counters
 
 # Récupérer toutes les informations de trafic

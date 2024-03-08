@@ -12,6 +12,7 @@ from .models import Network, Flowspec
 
 import requests
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 import os
 import json
@@ -25,13 +26,18 @@ FNM_API_ENDPOINT = os.environ.get('FNM_API_ENDPOINT',DEFAULT_API_ENDPOINT)
 FNM_API_USER = os.environ.get('FNM_API_USER',DEFAULT_API_USER)
 FNM_API_PASSWORD = os.environ.get('FNM_API_PASSWORD',DEFAULT_API_PASSWORD)
 
-@login_required
+#########################
+######### Views #########
+#########################
+
 def home(request):
 	return render(request, "home.html")
+
 
 @login_required
 def template(request):
 	return render(request, "template.html")
+
 
 @login_required
 def dashboard(request):
@@ -65,36 +71,6 @@ def hostgroup(request):
 		form = HostgroupForm()
 		return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
 
-
-@login_required
-def add_hostgroup(req):
-	form = HostgroupForm(req.POST)
-	if form.is_valid():
-		name = form.cleaned_data['name']
-		description = form.cleaned_data['description']
-		print(f"name : {name}, description : {description}")
-		error_message = f"name : {name}, description : {description}"
-		
-		# créer l'hostgroup
-		response = requests.put(
-			f"{FNM_API_ENDPOINT}/hostgroup/{name}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-
-		if response.status_code != 200:
-			error_message = f"Hostgroup creation error. Please try again. \n{response.text}"
-			return error_message
-
-		# paramétrer la description
-		response2 = requests.put(
-			f"{FNM_API_ENDPOINT}/hostgroup/{name}/description/{description}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-
-		if response2.status_code != 200:
-			error_message = f"Description setting error. Please try again. \n{response.text}"
-			return error_message
-	return False
 
 @login_required
 def modify_hostgroup(request, hostgroup):
@@ -143,6 +119,7 @@ def modify_hostgroup(request, hostgroup):
 
 		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
 
+
 @login_required
 def delete_hostgroup(request, name):
 	if name == "global":
@@ -160,6 +137,7 @@ def delete_hostgroup(request, name):
 		else:
 			messages.error(request, f"Hostgroup deletion error. Please try again. \n{response.text}")
 			return redirect("hostgroup")
+
 
 @login_required
 def help(request):
@@ -191,6 +169,7 @@ def network(request):
 		networks = Network.objects.all()
 	return render(request, "network.html", {"form": form, "networks": networks})
 
+
 @login_required
 def network_delete(request):
 	if request.method == "POST":
@@ -198,8 +177,227 @@ def network_delete(request):
 		w.delete()
 	return redirect("/network/")
 
-from django.db import IntegrityError
 
+@login_required
+def flowspec(request):
+	form = FlowspecForm(user=request.user)
+	# Permet de recevoir les règles de l'API qui sont pas dans la DB
+	api_only_flowspecs = check_other_fl_rules(request)
+	#messages.error(request, api_only_flowspecs)
+
+	if request.method == "POST":
+		form = FlowspecForm(request.POST)
+		# Have we been provided with a valid form?
+		if form.is_valid():
+			# Save the new category to the database.
+			flowspec = form.save(commit=False)
+			flowspec.save()
+			print("Flowspec passes validation")
+			messages.success(request, "You have sucessfully commited a Flowspec rule.")
+	flowspecs = Flowspec.objects.filter(net__user=request.user)
+	#print(flowspecs)
+	#messages.error(request, flowspecs)
+	return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
+
+
+@login_required
+def flowspec_toggle(request):
+	if request.method == "POST":
+		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
+		if w.active == True:
+			if remove_flowspec_route(w):
+				w.active = False
+				w.save()
+		elif w.active == False:
+			if insert_flowspec_route(w):
+				w.active = True
+				w.save()
+	return redirect("/flowspec/")
+
+
+@login_required
+def flowspec_redeploy(request):
+	if request.method == "POST":
+	  rules = Flowspec.objects.filter(net__user=request.user)
+	  for rule in rules:
+		  if rule.active == True:
+			  insert_flowspec_route(rule)
+	return redirect("/flowspec/")
+
+
+@login_required
+def flowspec_flush(request):
+	if request.method == "POST":
+	  #nets = Network.objects.all(id__=request.user)
+	  rules = Flowspec.objects.filter(net__user=request.user)
+	  for rule in rules: 
+		  if remove_flowspec_route(rule):
+			  rule.active = False
+			  rule.save()
+	return redirect("/flowspec/")
+
+
+@login_required
+def flowspec_delete(request):
+	if request.method == "POST":
+		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
+		if not w.active:
+			w.delete()
+		else:
+			messages.warning(
+				request,
+				"You need to disable the Flowspec rule first.",
+				extra_tags="flowspec_table",
+			)
+	return redirect("/flowspec/")
+
+
+@login_required
+def api_flowspec_delete(request):
+	rule_uid = request.POST["api_flowspec_id"]
+	messages.error(request, rule_uid)
+	try:
+		response = requests.delete(
+			f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	except:
+		pass
+	return redirect("/flowspec/")
+
+
+@login_required
+def user_logout(request):
+	logout(request)
+	return redirect("home")
+
+
+#####################################################
+######### Fonctions utilisées par les views #########
+#####################################################
+
+
+#### DashBoard functions start ####
+def get_total_traffic():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/total_traffic_counters",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if not json_data["success"]:
+		totals = None
+	else:
+		totals = {
+			"in_mbps": json_data["values"][7]["value"] + json_data["values"][11]["value"] + json_data["values"][13]["value"],
+			"in_mbps_suffix": "mbps" if json_data["values"][7]["value"] <= 10240 else "gbps",
+			"in_pps": json_data["values"][0]["value"] + json_data["values"][4]["value"] + json_data["values"][6]["value"],
+			"in_pps_suffix": "pps" if json_data["values"][0]["value"] <= 10000 else "kpps",
+			"out_mbps": json_data["values"][3]["value"],
+			"out_mbps_suffix": "mbps" if json_data["values"][3]["value"] <= 10240 else "gbps",
+			"out_pps": json_data["values"][2]["value"],
+			"out_pps_suffix": "pps" if json_data["values"][2]["value"] <= 10000 else "kpps",
+		}
+	return totals
+
+
+def get_global_ban():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/main/enable_ban",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if response.status_code == 200:
+		return json_data["value"]
+	return False
+
+
+def get_global_unban():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/main/unban_enabled",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if response.status_code == 200:
+		return json_data["value"]
+	return False
+
+
+@login_required	
+def set_global_ban(request):
+	if request.method == "POST":
+		# voir le status actuel
+		boolean = get_global_ban()
+		if boolean:
+			status = "false"
+		else:
+			status = "true"
+
+		response = requests.put(
+				f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code != 200:
+			messages.error(request, "set ban did'nt succeed")
+		return redirect("/dashboard")
+
+
+@login_required
+def set_global_unban(request):
+	if request.method == "POST":
+		# voir le status actuel
+		boolean = get_global_unban()
+		if boolean:
+			status = "false"
+		else:
+			status = "true"
+		response = requests.put(
+				f"{FNM_API_ENDPOINT}/main/unban_enabled/{status}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code != 200:
+			messages.error(request, "set unban did'nt succeed")
+		return redirect("/dashboard")
+
+#### DashBoard functions end ####
+
+
+#### Hostgroup functions start ####
+
+@login_required
+def add_hostgroup(req):
+	form = HostgroupForm(req.POST)
+	if form.is_valid():
+		name = form.cleaned_data['name']
+		description = form.cleaned_data['description']
+		print(f"name : {name}, description : {description}")
+		error_message = f"name : {name}, description : {description}"
+		
+		# créer l'hostgroup
+		response = requests.put(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+
+		if response.status_code != 200:
+			error_message = f"Hostgroup creation error. Please try again. \n{response.text}"
+			return error_message
+
+		# paramétrer la description
+		response2 = requests.put(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}/description/{description}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+
+		if response2.status_code != 200:
+			error_message = f"Description setting error. Please try again. \n{response.text}"
+			return error_message
+	return False
+
+#### Hostgroup functions end ####
+
+#### Flowspec functions start ####
+
+@login_required
 def check_other_fl_rules(request):
 	response = requests.get(
 		f"{FNM_API_ENDPOINT}/flowspec",
@@ -246,77 +444,9 @@ def check_other_fl_rules(request):
 
 	else:
 		return None
-	 
+
 
 @login_required
-def flowspec(request):
-	form = FlowspecForm(user=request.user)
-	# Permet de recevoir les règles de l'API qui sont pas dans la DB
-	api_only_flowspecs = check_other_fl_rules(request)
-	#messages.error(request, api_only_flowspecs)
-
-	if request.method == "POST":
-		form = FlowspecForm(request.POST)
-		# Have we been provided with a valid form?
-		if form.is_valid():
-			# Save the new category to the database.
-			flowspec = form.save(commit=False)
-			flowspec.save()
-			print("Flowspec passes validation")
-			messages.success(request, "You have sucessfully commited a Flowspec rule.")
-	flowspecs = Flowspec.objects.filter(net__user=request.user)
-	#print(flowspecs)
-	#messages.error(request, flowspecs)
-	return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
-
-@login_required
-def flowspec_toggle(request):
-	if request.method == "POST":
-		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
-		if w.active == True:
-			if remove_flowspec_route(w):
-				w.active = False
-				w.save()
-		elif w.active == False:
-			if insert_flowspec_route(w):
-				w.active = True
-				w.save()
-	return redirect("/flowspec/")
-
-@login_required
-def flowspec_redeploy(request):
-	if request.method == "POST":
-	  rules = Flowspec.objects.filter(net__user=request.user)
-	  for rule in rules:
-		  if rule.active == True:
-			  insert_flowspec_route(rule)
-	return redirect("/flowspec/")
-
-@login_required
-def flowspec_flush(request):
-	if request.method == "POST":
-	  #nets = Network.objects.all(id__=request.user)
-	  rules = Flowspec.objects.filter(net__user=request.user)
-	  for rule in rules: 
-		  if remove_flowspec_route(rule):
-			  rule.active = False
-			  rule.save()
-	return redirect("/flowspec/")
-
-@login_required
-def flowspec_delete(request):
-	if request.method == "POST":
-		w = Flowspec.objects.get(id=request.POST["flowspec_id"])
-		if not w.active:
-			w.delete()
-		else:
-			messages.warning(
-				request,
-				"You need to disable the Flowspec rule first.",
-				extra_tags="flowspec_table",
-			)
-	return redirect("/flowspec/")
-
 def insert_flowspec_route(rule):
 
 	# Set the flowspec mandatory route details
@@ -346,19 +476,8 @@ def insert_flowspec_route(rule):
 		return True
 	return False
 
-@login_required
-def api_flowspec_delete(request):
-	rule_uid = request.POST["api_flowspec_id"]
-	messages.error(request, rule_uid)
-	try:
-		response = requests.delete(
-			f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	except:
-		pass
-	return redirect("/flowspec/")
 
+@login_required
 def remove_flowspec_route(rule):
 	# Make the API call to insert the flowspec route
 	response = requests.get(
@@ -405,35 +524,16 @@ def remove_flowspec_route(rule):
 		return True
 	return False
 
-@login_required
-def user_logout(request):
-	logout(request)
-	return redirect("home")
+#### Flowspec functions end ####
+
+
+
 
 
 ####### FONCTIONS PAS ENCORE UTILISEES #######
-def get_total_traffic():
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/total_traffic_counters",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	json_data = response.json()
-	if not json_data["success"]:
-		totals = None
-	else:
-		totals = {
-			"in_mbps": json_data["values"][7]["value"] + json_data["values"][11]["value"] + json_data["values"][13]["value"],
-			"in_mbps_suffix": "mbps" if json_data["values"][7]["value"] <= 10240 else "gbps",
-			"in_pps": json_data["values"][0]["value"] + json_data["values"][4]["value"] + json_data["values"][6]["value"],
-			"in_pps_suffix": "pps" if json_data["values"][0]["value"] <= 10000 else "kpps",
-			"out_mbps": json_data["values"][3]["value"],
-			"out_mbps_suffix": "mbps" if json_data["values"][3]["value"] <= 10240 else "gbps",
-			"out_pps": json_data["values"][2]["value"],
-			"out_pps_suffix": "pps" if json_data["values"][2]["value"] <= 10000 else "kpps",
-		}
-	return totals
 
-def get_host_traffic():
+
+def get_hosts_traffic():
 	response = requests.get(
 			f"{FNM_API_ENDPOINT}/host_counters",
 			auth=(FNM_API_USER, FNM_API_PASSWORD),
@@ -445,60 +545,6 @@ def get_host_traffic():
 	else:
 		return json_data["values"]
 
-def get_global_ban():
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/main/enable_ban",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	json_data = response.json()
-	if response.status_code == 200:
-		return json_data["value"]
-	return False
-
-def get_global_unban():
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/main/unban_enabled",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	json_data = response.json()
-	if response.status_code == 200:
-		return json_data["value"]
-	return False
-
-@login_required	
-def set_global_ban(request):
-	if request.method == "POST":
-		# voir le status actuel
-		boolean = get_global_ban()
-		if boolean:
-			status = "false"
-		else:
-			status = "true"
-
-		response = requests.put(
-				f"{FNM_API_ENDPOINT}/main/enable_ban/{status}",
-				auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-		if response.status_code == 200:
-			return True
-		return False
-
-@login_required
-def set_global_unban(request):
-	if request.method == "POST":
-		# voir le status actuel
-		boolean = get_global_unban()
-		if boolean:
-			status = "false"
-		else:
-			status = "true"
-		response = requests.put(
-				f"{FNM_API_ENDPOINT}/main/unban_enabled/{status}",
-				auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-		if response.status_code == 200:
-			return True
-		return False
 
 def get_blackhole():
 	response = requests.get(

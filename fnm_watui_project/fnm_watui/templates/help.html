@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 <div>
-  <div class="flex-item" style="margin-top:-5%;"> 
+  <div class="flex-item"> 
     <h1 class="title" style="color: black;">
       Help
     </h1>
@@ -14,11 +14,13 @@
     <img src="{% static 'WatUI.png' %}" alt="Logo Watui" style="width: 50%; height: auto;">
   </div>
   <br><br>
-    <a  href="https://github.com/ShonenNoSeishin/FNMWatui" style="color: royalblue;">➡️ This project on Github</a>
-    <br>
-    <a  href="https://github.com/psi-cl/fsgui/" style="color: royalblue;">➡️ Flowspec-GUI Project on Github which is the the base of this project</a>
-    <br>
-    <a  href="https://fastnetmon.com/docs-fnm-advanced/" style="color: royalblue;">➡️ Fastnetmon Adv. Doc</a>
+    <div class="flex-item"> 
+        <a  href="https://github.com/ShonenNoSeishin/FNMWatui" style="color: royalblue;">➡️ This project on Github</a>
+        <br>
+        <a  href="https://github.com/psi-cl/fsgui/" style="color: royalblue;">➡️ Flowspec-GUI Github Project <br>(the base of this project)</a>
+       <br>
+        <a  href="https://fastnetmon.com/docs-fnm-advanced/" style="color: royalblue;">➡️ Fastnetmon Adv. Doc</a>
+    </div>
   <br>
 </div>
 {% endblock %}
