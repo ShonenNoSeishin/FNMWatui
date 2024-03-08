@@ -430,6 +430,17 @@ def get_blackhole():
 		return json_data["values"]
 	return False
 
+
+def set_blackhole(ip_to_blackhole):
+	response = requests.put(
+			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	if response.status_code == 200:
+		return True
+	return response
+
+	
 #### DashBoard functions end ####
 
 
@@ -605,28 +616,21 @@ def remove_flowspec_route(rule):
 ####### FONCTIONS PAS ENCORE UTILISEES #######
 
 
-def set_blackhole(ip_to_blackhole):
-	response = requests.put(
-			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-	)
-	if response.status_code == 200:
-		return True
-	return response
 
-def unban_ip_blackhole(ip_to_unban):
-	blackholes = get_blackhole()
-	for i in blackholes:
-		if i.get('ip', '') == f"{ip_to_unban}/32":
-			blackhole_uuid = i.get('uuid','')
-			break
-	response = requests.delete(
-			f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-	)
-	if response.status_code == 200:
-		return True
-	return False
+
+# def unban_ip_blackhole(ip_to_unban):
+# 	blackholes = get_blackhole()
+# 	for i in blackholes:
+# 		if i.get('ip', '') == f"{ip_to_unban}/32":
+# 			blackhole_uuid = i.get('uuid','')
+# 			break
+# 	response = requests.delete(
+# 			f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
+# 			auth=(FNM_API_USER, FNM_API_PASSWORD),
+# 	)
+# 	if response.status_code == 200:
+# 		return True
+# 	return False
 
 def get_hostgroup_info(hostgroup_name):
 	response = requests.get(
