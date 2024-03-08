@@ -83,9 +83,37 @@
 		        </div>
 		      </div>
 		    {% endfor %}
-		 </div>
+		 		</div>
+			</div>
+		<br>
+		<div class="flex-item" style="width: 100%;">
+        <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Network Traffic </h2>
+    	<div class="panel panel-default panel-100" style="width: 100%;">
+        <div class="panel-heading">
+        
+        <table style="width: 100%; align-content: center;">
+            <thead>
+                <tr>
+                    <th>IP</th>
+                    <th>PPS</th>
+                    <th>MBPS</th>
+                    <th>Flows</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for host_data in host_traffic %}
+                    <tr>
+                        <td>{{ host_data.host }}</a></td>
+                        <td>{{ host_data.incoming_packets }}</td>
+                        <td>{{ host_data.incoming_bytes|floatformat:2 }}</td>
+                        <td>{{ host_data.incoming_flows }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    	</div>
 		</div>
-	 
 
 	  </div>
 	  {% else %}

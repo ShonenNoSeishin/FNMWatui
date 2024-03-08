@@ -44,6 +44,26 @@ def dashboard(request):
 	total_traffic = get_total_traffic()
 	global_ban_status = get_global_ban()
 	global_unban_status = get_global_unban()
+	host_traffic = get_hosts_traffic()
+
+	host_traffic_from_context = []
+	# Pour tester l'affichage quand il n'y a pas de trafic, décommentez la suite
+
+	# for i in range(3):
+	# 	host_traffic_from_context.append({
+	# 			'host': "10.0.0.1",
+	# 			'incoming_packets': 0,
+	# 			'incoming_bytes': 0,
+	# 			'incoming_flows': 0,
+	# 		})
+
+	for host_data in host_traffic:
+		host_traffic_from_context.append({
+			'host': host_data['host'],
+			'incoming_packets': host_data['incoming_packets'],
+			'incoming_bytes': host_data['incoming_bytes'],
+			'incoming_flows': host_data['incoming_flows'],
+		})
 	
 	traffic_data = [
 		("in_mbps", "fa-bar-chart", total_traffic["in_mbps"], total_traffic["in_mbps_suffix"], "INBOUND BYTES"),
@@ -51,7 +71,7 @@ def dashboard(request):
 		# On peut ajouter d'autres types
 	]
 
-	return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status})
+	return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context})
 
 
 @login_required
