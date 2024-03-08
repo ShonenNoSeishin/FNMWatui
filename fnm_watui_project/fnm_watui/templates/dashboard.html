@@ -85,6 +85,7 @@
 		    {% endfor %}
 		 		</div>
 			</div>
+		
 		<br>
 		<div class="flex-item" style="width: 100%;">
         <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Network Traffic </h2>
@@ -94,10 +95,10 @@
         <table style="width: 100%; align-content: center;">
             <thead>
                 <tr>
-                    <th>IP</th>
-                    <th>PPS</th>
-                    <th>MBPS</th>
-                    <th>Flows</th>
+                    <th><u>IP</u></th>
+                    <th><u>PPS</u></th>
+                    <th><u>MBPS</u></th>
+                    <th><u>Flows</u></th>
                 </tr>
             </thead>
             <tbody>
@@ -115,10 +116,46 @@
     	</div>
 		</div>
 
+		<br>
+		<div class="flex-item" style="width: 100%;">
+        <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Banned IPs </h2>
+    	<div class="panel panel-default panel-100" style="width: 100%;">
+    		<form method="post" action="{% url 'dashboard'  %}">
+    			{% csrf_token %}
+    			<input class="form-control" style="border: none; padding-bottom: 2px solid red; align-content: center; text-align: center;" type="text" name="blackholed_ip" placeholder="Enter an IP like 'X.X.X.X'" />
+    		</form>
+        <div class="panel-heading">
+        
+        <table style="width: 100%; align-content: center;">
+            <thead>
+                <tr>
+                    <th><u>IP</u></th>
+                    <th><u>Delete blackholed IP</u></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in blackhole_info %}
+                    <tr>
+                        <td>{{ i.ip }}</td>
+                        <td><a href="{% url 'unban_ip_blackhole_view' i.ip %}">❌</a></td>
+                        
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    	</div>
+		</div>
+
 	  </div>
 	  {% else %}
 	    <h1 class="title">You are not logged in</h1>
 	    <p><a href="{% url 'login' %}">Log In</a></p>
 	{% endif %}
 </div>
+<script>
+setTimeout(function(){
+   window.location.reload(1);
+}, 30000);
+</script>
 {% endblock %}

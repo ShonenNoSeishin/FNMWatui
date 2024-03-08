@@ -20,4 +20,5 @@ urlpatterns = [
     path('api_flowspec_delete/', views.api_flowspec_delete, name='api_flowspec_delete'),
     path('set_global_ban/', views.set_global_ban, name='set_global_ban'),
     path('set_global_unban/', views.set_global_unban, name='set_global_unban'),
+    path('unban_ip_blackhole/<path:ip_to_unban>/', views.unban_ip_blackhole_view, name='unban_ip_blackhole_view'),
 ]

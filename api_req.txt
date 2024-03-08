@@ -83,3 +83,7 @@ curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<Blackhol
 ## license
 # voir les info de la license FNM
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/license
+
+
+## Commit les changements sur l'API 
+curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/commit

@@ -21,7 +21,10 @@ class ModifyHostgroupForm(forms.Form):
     threshold_mbps = forms.CharField()
     threshold_flows = forms.CharField()
     enable_ban = forms.CharField()
-    
+
+class add_blackhole_form(forms.Form):
+    blackholed_ip = forms.CharField()
+
 class HostgroupForm(forms.Form):
     name = forms.CharField(label='Name', max_length=100)
     description = forms.CharField(

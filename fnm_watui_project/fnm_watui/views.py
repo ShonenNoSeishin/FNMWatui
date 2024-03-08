@@ -45,6 +45,7 @@ def dashboard(request):
 	global_ban_status = get_global_ban()
 	global_unban_status = get_global_unban()
 	host_traffic = get_hosts_traffic()
+	blackhole_info = get_blackhole()
 
 	host_traffic_from_context = []
 	# Pour tester l'affichage quand il n'y a pas de trafic, décommentez la suite
@@ -71,7 +72,34 @@ def dashboard(request):
 		# On peut ajouter d'autres types
 	]
 
-	return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context})
+	if request.method == 'POST':
+		form = add_blackhole_form(request.POST)
+		if form.is_valid():
+			ban_response = set_blackhole(form.cleaned_data['blackholed_ip'])
+			if not ban_response:
+				messages.error(request, f"can't create this blackhole rule : {ban_response.text}")
+				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
+			else:
+				return redirect('dashboard')
+	else:
+		form = add_blackhole_form()
+		return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
+
+
+@login_required	
+def unban_ip_blackhole_view(request, ip_to_unban):
+    blackholes = get_blackhole()
+    for i in blackholes:
+        if i.get('ip', '') == f"{ip_to_unban}/32" or i.get('ip', '') == f"{ip_to_unban}":
+            blackhole_uuid = i.get('uuid', '')
+            break
+    response = requests.delete(
+        f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
+        auth=(FNM_API_USER, FNM_API_PASSWORD),
+    )
+    if response.status_code != 200:
+    	messages.error(request, f"can't delete this blackhole rule : {response.text}")
+    return redirect('dashboard')  # Remplacez 'your_redirect_url' par l'URL à laquelle vous souhaitez rediriger
 
 
 @login_required
@@ -378,6 +406,30 @@ def set_global_unban(request):
 			messages.error(request, "set unban did'nt succeed")
 		return redirect("/dashboard")
 
+
+def get_hosts_traffic():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/host_counters",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if not json_data["success"]:
+		totals = None
+
+	else:
+		return json_data["values"]
+
+
+def get_blackhole():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/blackhole",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	if response.status_code == 200:
+		json_data = response.json()
+		return json_data["values"]
+	return False
+
 #### DashBoard functions end ####
 
 
@@ -553,29 +605,6 @@ def remove_flowspec_route(rule):
 ####### FONCTIONS PAS ENCORE UTILISEES #######
 
 
-def get_hosts_traffic():
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/host_counters",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	json_data = response.json()
-	if not json_data["success"]:
-		totals = None
-
-	else:
-		return json_data["values"]
-
-
-def get_blackhole():
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/blackhole",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	if response.status_code == 200:
-		json_data = response.json()
-		return json_data["values"]
-	return False
-
 def set_blackhole(ip_to_blackhole):
 	response = requests.put(
 			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
@@ -583,7 +612,7 @@ def set_blackhole(ip_to_blackhole):
 	)
 	if response.status_code == 200:
 		return True
-	return False
+	return response
 
 def unban_ip_blackhole(ip_to_unban):
 	blackholes = get_blackhole()
