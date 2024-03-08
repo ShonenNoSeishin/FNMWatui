@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="column is-4 is-offset-4">
-<h1 class="title" style="color: black;">
-  My Networks
+<h1 class="title" style="color: black;  border-block: 2px solid black; border-bottom: 2px solid black;">
+  <b>My Networks</b>
 </h1>
 
+<div class="column is-4 is-offset-4">
 {% if request.user.is_superuser %}
-  <h2 class="subtitle" style="color: black; margin-top: 0%;">
+  <h2 class="subtitle" style="color: black; margin-top: 0%; ">
     Allocated networks
   </h2>
   <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p><br>
