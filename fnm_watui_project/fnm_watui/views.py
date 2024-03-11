@@ -33,7 +33,7 @@ FNM_API_PASSWORD = os.environ.get('FNM_API_PASSWORD',DEFAULT_API_PASSWORD)
 #########################
 
 def home(request):
-	return render(request, "home.html")
+    return render(request, 'home.html', {'current_view': 'home'})
 
 
 @login_required
@@ -85,7 +85,7 @@ def dashboard(request):
 				return redirect('dashboard')
 	else:
 		form = add_blackhole_form()
-		return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
+		return render(request, "dashboard.html", {'current_view': 'dashboard', "traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
 
 
 @login_required	
@@ -119,7 +119,7 @@ def hostgroup(request):
 			return redirect("hostgroup")
 	else:
 		form = HostgroupForm()
-		return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
+		return render(request, "hostgroup.html", {'current_view': 'hostgroup', "hostgroups": hostgroups.json()["values"], "form": form})
 
 
 @login_required
@@ -233,7 +233,7 @@ def delete_hostgroup(request, name):
 
 @login_required
 def help(request):
-	return render(request, "help.html")
+	return render(request, "help.html", {'current_view': 'help'})
 
 
 @login_required
@@ -259,7 +259,7 @@ def network(request):
 		form = NetworkForm()
 		# Also populate the table with existing networks
 		networks = Network.objects.all()
-	return render(request, "network.html", {"form": form, "networks": networks})
+	return render(request, "network.html", {"form": form, "networks": networks, 'current_view': 'network'})
 
 
 @login_required
@@ -289,7 +289,7 @@ def flowspec(request):
 	flowspecs = Flowspec.objects.filter(net__user=request.user)
 	#print(flowspecs)
 	#messages.error(request, flowspecs)
-	return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
+	return render(request, "flowspec.html", {'current_view': 'flowspec', "form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
 
 
 @login_required
@@ -531,7 +531,7 @@ def get_hostgroup_info(hostgroup_name):
 		json_data = response.json()
 		return json_data["values"]
 	return False
-	
+
 
 def is_valid_cidr_list_or_wide(input_str):
     # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
