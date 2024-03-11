@@ -16,6 +16,8 @@ from django.db import IntegrityError
 
 import os
 import json
+import ast
+import ipaddress
 
 # Set the FastNetMon API endpoint and authentication details
 DEFAULT_API_ENDPOINT = "http://127.0.0.1:10007"
@@ -119,7 +121,6 @@ def hostgroup(request):
 		form = HostgroupForm()
 		return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
 
-import ast
 
 @login_required
 def modify_hostgroup(request, hostgroup):
@@ -143,33 +144,49 @@ def modify_hostgroup(request, hostgroup):
 			values = [name, description, mapped_networks, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
 			for i in range(0,7):
 				if keys[i] == "name":
-					response = requests.put(
-							f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
-							auth=(FNM_API_USER, FNM_API_PASSWORD),
-						)
+					try:
+						response = requests.put(
+								f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
+								auth=(FNM_API_USER, FNM_API_PASSWORD),
+							)
+					except:
+						messages.error(request, response.text)
 
 				elif keys[i] == "networks":
-					# supprimer les networks existants avant de les recréer 
-					delete_hostgroup_networks(values[0])
+					# supprimer les networks existants avant de les recréer si c'est une entrée valide
+					if is_valid_cidr_list_or_wide(values[i]):
+						delete_hostgroup_networks(values[0])
+					else : 
+						messages.error(request, "mapped networks not valid, please enter in the following format -> ['X.X.X.X/XX','X.X.X.X/XX',...]")
+						return redirect("hostgroup")
 
 					# si la liste est vide, quitter après avoir tout supprimer
 					if values[i] == "":
 						return redirect("hostgroup")
 
 					# Pour l'instant, c'est une string comme '[X.X.X.X/XX,...]' donc il faut caster en [X.X.X.X/XX,...]
-					casted_list = ast.literal_eval(values[i])
+					try:
+						casted_list = ast.literal_eval(values[i])
+					except:
+						messages.error(request, response.text)
+						return redirect("hostgroup")
 					for element in casted_list:
 						element = element.replace("/","%2F")
-						response = requests.put(
-								f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{element}",
-								auth=(FNM_API_USER, FNM_API_PASSWORD),
-							)
-
+						try:
+							response = requests.put(
+									f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{element}",
+									auth=(FNM_API_USER, FNM_API_PASSWORD),
+								)
+						except:
+							messages.error(request, response.text)
 				else:
-					response = requests.put(
-						f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
-						auth=(FNM_API_USER, FNM_API_PASSWORD),
-					)
+					try:
+						response = requests.put(
+							f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
+							auth=(FNM_API_USER, FNM_API_PASSWORD),
+						)
+					except:
+						messages.error(request, response.text)
 
 				if response.status_code != 200:
 					messages.error(request, response.text)
@@ -188,6 +205,35 @@ def modify_hostgroup(request, hostgroup):
 
 		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
 
+def is_valid_cidr_list_or_wide(input_str):
+    # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
+    if input_str == "":
+    	return True 
+    # définir une sous fonction qui vérifie si un CIDR est ok 
+    def is_valid_cidr(cidr):
+        try:
+            ip_addr = ipaddress.ip_network(cidr, False)
+            return True
+        except ValueError:
+            return False
+
+    try:
+        # Essayer de transformer la chaîne en une liste avec ast.literal_eval
+        cidr_list = ast.literal_eval(input_str)
+
+        # Vérifier que cidr_list est bien une liste
+        if not isinstance(cidr_list, list):
+            return False
+
+        # Vérifier que tous les éléments de la liste sont des chaînes valides d'adresses IP CIDR
+        for item in cidr_list:
+            if not isinstance(item, str) or not is_valid_cidr(item):
+                return False
+
+        return True
+    except (SyntaxError, ValueError):
+        return False
+
 def delete_hostgroup_networks(name):
 	hostgroups_networks = requests.get(
 		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
@@ -195,12 +241,15 @@ def delete_hostgroup_networks(name):
 	)
 	casted_list = hostgroups_networks.json()["values"]
 	if casted_list is not None:
-		for element in casted_list:
-			element = element.replace("/","%2F")
-			response = requests.delete(
-			f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks/{element}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
+		try:
+			for element in casted_list:
+				element = element.replace("/","%2F")
+				response = requests.delete(
+				f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks/{element}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+			)
+		except:
+			messages.error(request, response.text)
 		if response.status_code != 200:
 			messages.error(request, response.text)
 
