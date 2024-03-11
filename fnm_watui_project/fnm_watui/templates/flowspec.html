@@ -10,9 +10,9 @@
   Generate and deploy flowspec rules on your own networks
 </h2>
 
-<div style="padding-left:280px">
-  <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue;"> <b><u>DB flowspec rules :</u></b>
-  <table class="table has-background-primary is-align-self-center">
+<div>
+  <h2 style="text-align: center; text-shadow: aliceblue; color: steelblue;"> <b><u>DB flowspec rules :</u></b>
+  <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue;">
     <thead >
       <tr style="background-color:  cornflowerblue;">
         <th class="has-text-centered">Name</th>
@@ -22,6 +22,7 @@
         <th class="has-text-centered">Port</th>
         <th class="has-text-centered">Protocol</th>
         <th class="has-text-centered">Action</th>
+        <th class="has-text-centered" style="color: orange;">Validate modifications</th>
         <th class="has-text-centered">Status</th>
         <th class="has-text-centered">Delete</th>
       </tr>
@@ -30,13 +31,18 @@
       {% if flowspecs %}
         {% for flowspec in flowspecs %}
           <tr style="background-color:  cornflowerblue;">
-              <td class="has-text-centered">{% if flowspec.name != '' %} {{ flowspec.name }} {% else %} - {% endif %}</td>
-              <td class="has-text-centered">{% if flowspec.srcip != '' %} {{ flowspec.srcip }} {% else %} any {% endif %}</td>
-              <td class="has-text-centered">{% if flowspec.srcprt != -1 %} {{ flowspec.srcprt }} {% else %} any {% endif %}</td>
-              <td class="has-text-centered">{% if flowspec.dstip != '' %} {{ flowspec.dstip }} {% else %} - {% endif %}</td>
-              <td class="has-text-centered">{% if flowspec.dstprt != -1 %} {{ flowspec.dstprt }} {% else %} any {% endif %}</td>
-              <td class="has-text-centered">{% if flowspec.protocol != '' %} {{ flowspec.protocol }} {% else %} any {% endif %}</td>
-              <td class="has-text-centered">{{ flowspec.action }}</td>
+              <form method="post" action="{% url 'modify_flowspec_route' %}">
+                {% csrf_token %}
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="destination_prefix" value="{{ flowspec.destination_prefix }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="action_type" value="{{ flowspec.action_type }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="source_prefix" value="{{ flowspec.source_prefix }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="source_ports" value="{{ flowspec.source_ports }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="destination_ports" value="{{ flowspec.destination_ports }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="protocols" value="{{ flowspec.protocols }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="action_type" value="{{ flowspec.action_type }}" /></td>
+                <td><button type="submit" class="btn-modify">✅</button></td>
+              </form>
+
               <form action="/flowspec_toggle/" method="post">
                 {% csrf_token %}
                 <td>
@@ -52,6 +58,7 @@
                 </td>
               </form>
           </tr>
+
         {% endfor %}
       {% else %}
           <td colspan="100%" class="has-text-centered" style="background-color:  cornflowerblue;">No rules yet.</td>
@@ -82,9 +89,9 @@
 </form>
 </div>
 {% endif %}
-<div>
-  <h2 style="text-align: left; text-shadow: aliceblue; color: steelblue; margin-left: 21%;"> <b><u>Additionnal API flowspec rules :</u></b>
-  <table class="table has-background-primary is-align-self-center">
+  <h2 style="text-align: center; text-shadow: aliceblue; color: steelblue;"> <b><u>Additionnal API flowspec rules :</u></b>
+<div style="text-align: center; align-content: center; align-items: center;">
+  <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue; width: 100%; margin: auto;">
     <thead>
       <tr style="background-color:  cornflowerblue;">
         <th class="has-text-centered">IP source</th>

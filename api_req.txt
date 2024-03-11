@@ -25,8 +25,7 @@ curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/<Nom_Grou
 curl -X GET -u admin:techit1234 http://192.168.3.114:10007/hostgroup/test/networks
 
 # mapper un network à un hostgroup (note : %2F est l'encodage de "/")
-curl -X PUT -u admin:techit1234 http://192.168.3.114:10007/hostgroup/test/networks/"10.0.3.
-2%2F24"
+curl -X PUT -u admin:techit1234 http://192.168.3.114:10007/hostgroup/test/networks/"10.0.3.2%2F24"
 
 
 ## Networks
@@ -47,7 +46,7 @@ par exemple, mais dans l'URL il faut formater ça correctement donc c'est plus c
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/flowspec/54f23c6b-650b-4aed-aa53-8eda94fab549
 
 
-## enable/disable le default ban général
+## Enable/disable le default ban général
 # voir si c'est activé ou pas
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban
 
@@ -58,7 +57,7 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/true
 curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/enable_ban/false
 
 
-## enable/disable le default unban général
+## Enable/disable le default unban général
 # voir si c'est activé ou pas
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled
 
@@ -69,7 +68,7 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled/tru
 curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/main/unban_enabled/false
 
 
-## informations de trafic
+## Informations de trafic
 # Récupérer le trafic des différents hosts actifs
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/host_counters
 
@@ -88,7 +87,7 @@ curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<IP>
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/blackhole/<Blackhole_UID>
 
 
-## license
+## License
 # voir les info de la license FNM
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/license
 

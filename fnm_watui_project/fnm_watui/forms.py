@@ -20,12 +20,21 @@ class ModifyHostgroupForm(forms.Form):
     mapped_networks = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 5, 'cols': 40}),
         help_text="Enter IP addresses or networks separated by commas.",
-        required=False  # Vous pouvez ajuster cela selon vos besoins
+        required=False
     )
     threshold_pps = forms.CharField()
     threshold_mbps = forms.CharField()
     threshold_flows = forms.CharField()
     enable_ban = forms.CharField()
+
+class ModifyFlowspecForm(forms.Form):
+    destination_prefix = forms.CharField()
+    action_type = forms.CharField()
+    source_prefix = forms.CharField()
+    source_ports = forms.CharField()
+    destination_ports = forms.CharField()
+    protocols = forms.CharField()
+
 
 class add_blackhole_form(forms.Form):
     blackholed_ip = forms.CharField()

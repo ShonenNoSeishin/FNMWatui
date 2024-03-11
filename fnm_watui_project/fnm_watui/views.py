@@ -166,25 +166,23 @@ def modify_hostgroup(request, hostgroup):
 						messages.error(request, "mapped networks not valid, please enter in the following format -> ['X.X.X.X/XX','X.X.X.X/XX',...]")
 						return redirect("hostgroup")
 
-					# si la liste est vide, quitter après avoir tout supprimer
-					if values[i] == "":
-						return redirect("hostgroup")
-
-					# Pour l'instant, c'est une string comme '[X.X.X.X/XX,...]' donc il faut caster en [X.X.X.X/XX,...]
-					try:
-						casted_list = ast.literal_eval(values[i])
-					except:
-						messages.error(request, response.text)
-						return redirect("hostgroup")
-					for element in casted_list:
-						element = element.replace("/","%2F")
+					# si la liste est vide, il ne faut rien faire d'autre pour cete partie
+					if values[i] != "":
+						# Pour l'instant, c'est une string comme '[X.X.X.X/XX,...]' donc il faut caster en [X.X.X.X/XX,...]
 						try:
-							response = requests.put(
-									f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{element}",
-									auth=(FNM_API_USER, FNM_API_PASSWORD),
-								)
+							casted_list = ast.literal_eval(values[i])
 						except:
 							messages.error(request, response.text)
+							return redirect("hostgroup")
+						for element in casted_list:
+							element = element.replace("/","%2F")
+							try:
+								response = requests.put(
+										f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{element}",
+										auth=(FNM_API_USER, FNM_API_PASSWORD),
+									)
+							except:
+								messages.error(request, response.text)
 				else:
 					try:
 						response = requests.put(
@@ -198,18 +196,19 @@ def modify_hostgroup(request, hostgroup):
 					messages.error(request, response.text)
 			return redirect("hostgroup")
 	else:
-		initial_data = {
-			'name': hostgroup.name,
-			'description': hostgroup.description,
-			'mapped_networks': hostgroup.networks,
-			'threshold_pps': hostgroup.threshold_pps,
-			'threshold_mbps': hostgroup.threshold_mbps,
-			'threshold_flows': hostgroup.threshold_flows,
-			'enable_ban': hostgroup.enable_ban,
-		}
-		form = ModifyHostgroupForm(initial=initial_data)
+		# initial_data = {
+		# 	'name': hostgroup.name,
+		# 	'description': hostgroup.description,
+		# 	'mapped_networks': hostgroup.networks,
+		# 	'threshold_pps': hostgroup.threshold_pps,
+		# 	'threshold_mbps': hostgroup.threshold_mbps,
+		# 	'threshold_flows': hostgroup.threshold_flows,
+		# 	'enable_ban': hostgroup.enable_ban,
+		# }
+		# form = ModifyHostgroupForm(initial=initial_data)
 
-		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
+		# return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
+		return redirect("hostgroup")
 
 
 @login_required
@@ -330,6 +329,46 @@ def flowspec_flush(request):
 			  rule.save()
 	return redirect("/flowspec/")
 
+
+@login_required	
+def modify_flowspec_route(request):
+	form = ModifyFlowspecForm(request.POST)
+	if form.is_valid():
+		# Obtenez les données du formulaire valides
+		destination_prefix = form.cleaned_data['destination_prefix']
+		action_type = form.cleaned_data['action_type']
+		source_prefix = form.cleaned_data['source_prefix']
+		source_ports = form.cleaned_data['source_ports']
+		destination_ports = form.cleaned_data['destination_ports']
+		protocols = form.cleaned_data['protocols']
+
+		route = {
+			"destination_prefix": destination_prefix,
+			"action_type": action_type,
+		}
+
+		# add the flowspec optional route details
+		if source_prefix:
+			route["source_prefix"] = source_prefix
+		if source_ports > 0:
+			route["source_ports"] = [source_ports]
+		if destination_ports > 0:
+			route["destination_ports"] = [destination_ports]
+		if protocol:
+			route["protocols"] = [protocols]
+
+		# Make the API call to insert the flowspec route
+		response = requests.put(
+			f"{FNM_API_ENDPOINT}/flowspec",
+			json=route,
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		# Check if the API call was successful
+		if response.status_code != 200:
+			messages.error(request, response.text)
+		return redirect("flowspec")
+	else:
+		pass
 
 @login_required
 def flowspec_delete(request):
