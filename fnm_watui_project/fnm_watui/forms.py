@@ -17,6 +17,11 @@ def validate_network(value):
 class ModifyHostgroupForm(forms.Form):
     name = forms.CharField()
     description = forms.CharField()
+    mapped_networks = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 5, 'cols': 40}),
+        help_text="Enter IP addresses or networks separated by commas.",
+        required=False  # Vous pouvez ajuster cela selon vos besoins
+    )
     threshold_pps = forms.CharField()
     threshold_mbps = forms.CharField()
     threshold_flows = forms.CharField()

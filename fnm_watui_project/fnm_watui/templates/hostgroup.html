@@ -7,7 +7,7 @@
   {% if messages %}
     <ul class="messages">
       {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        <li{% if message.tags %} class="{{ message.tags }}" style="color: red;"{% endif %}>{{ message }}</li>
       {% endfor %}
     </ul>
   {% endif %}
@@ -29,11 +29,12 @@
       <div class="table-container">
         <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue;">
           <tr style="background-color:  cornflowerblue;">
-              <th class="has-text-centered">Name</th>
+              <th class="has-text-centered" style="width: 200%;">Name</th>
               <th class="has-text-centered">Description</th>
-              <th class="has-text-centered">Treshold pps</th>
-              <th class="has-text-centered">Treshold Mbps (Bandwidth) </th>
-              <th class="has-text-centered">Treshold Flows </th>
+              <th class="has-text-centered">Mapped networks</th>
+              <th class="has-text-centered">Treshold pps limit</th>
+              <th class="has-text-centered">Treshold Mbps (Bandwidth) limit</th>
+              <th class="has-text-centered">Treshold Flows limit</th>
               <th class="has-text-centered"> ban enabled ? (based on Threshold) </th>
               <th class="has-text-centered" style="color: orange;">Validate modifications</th>
               <th class="has-text-centered">Delete</th>
@@ -41,12 +42,13 @@
           <form method="post" action="{% url 'modify_hostgroup' hostgroup.name %}">
             {% csrf_token %}
             <tr style="background-color:  cornflowerblue;">
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="name" value="{{ hostgroup.name }}" /></td>
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="description" value="{{ hostgroup.description }}" /></td>
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_pps" value="{{ hostgroup.threshold_pps }}" /></td>
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_mbps" value="{{ hostgroup.threshold_mbps }}" /></td>
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="threshold_flows" value="{{ hostgroup.threshold_flows }}" /></td>
-                <td><input style="border: none; padding-bottom: 2px solid red;" type="text" name="enable_ban" value="{{ hostgroup.enable_ban }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="name" value="{{ hostgroup.name }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="description" value="{{ hostgroup.description }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="mapped_networks" value="{{ hostgroup.networks }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_pps" value="{{ hostgroup.threshold_pps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_mbps" value="{{ hostgroup.threshold_mbps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_flows" value="{{ hostgroup.threshold_flows }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="enable_ban" value="{{ hostgroup.enable_ban }}" /></td>
                 <td><button type="submit" class="btn-modify">✅</button></td>
                 <td><a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a></td>
             </tr>

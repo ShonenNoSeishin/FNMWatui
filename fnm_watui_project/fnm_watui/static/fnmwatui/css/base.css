@@ -8,6 +8,7 @@ ul.messages li.error {
 display: flex;
 justify-content: center;
 align-items: center;
+width: 100%;
 }
 
 /* Styles pour définir une taille fixe de colonnes */

@@ -21,6 +21,14 @@ curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/test/thresho
 # supprimer un hostgroup
 curl -X DELETE -u admin:<API_PWD> http://192.168.3.114:10007/hostgroup/<Nom_Groupe>
 
+# voir les networks mappés à un hostgroup
+curl -X GET -u admin:techit1234 http://192.168.3.114:10007/hostgroup/test/networks
+
+# mapper un network à un hostgroup (note : %2F est l'encodage de "/")
+curl -X PUT -u admin:techit1234 http://192.168.3.114:10007/hostgroup/test/networks/"10.0.3.
+2%2F24"
+
+
 ## Networks
 # voir les networks listés (attention que cette interface n'envoie pas les networks à l'API, elle se base sur sa propre base de données pour ce qui est des networks)
 curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/main/networks_list

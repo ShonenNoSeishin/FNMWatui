@@ -119,6 +119,7 @@ def hostgroup(request):
 		form = HostgroupForm()
 		return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form})
 
+import ast
 
 @login_required
 def modify_hostgroup(request, hostgroup):
@@ -128,6 +129,7 @@ def modify_hostgroup(request, hostgroup):
 			# Obtenez les données du formulaire valides
 			name = form.cleaned_data['name']
 			description = form.cleaned_data['description']
+			mapped_networks = form.cleaned_data['mapped_networks']
 			threshold_pps = form.cleaned_data['threshold_pps']
 			threshold_mbps = form.cleaned_data['threshold_mbps']
 			threshold_flows = form.cleaned_data['threshold_flows']
@@ -137,14 +139,32 @@ def modify_hostgroup(request, hostgroup):
 				messages.error(request, "you can't modify the global hostgroup, it's a native group")
 				return redirect("hostgroup")
 			
-			keys = ["name", "description", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
-			values = [name, description, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
-			for i in range(0,6):
+			keys = ["name", "description", "networks", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
+			values = [name, description, mapped_networks, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
+			for i in range(0,7):
 				if keys[i] == "name":
 					response = requests.put(
 							f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{values[i]}",
 							auth=(FNM_API_USER, FNM_API_PASSWORD),
 						)
+
+				elif keys[i] == "networks":
+					# supprimer les networks existants avant de les recréer 
+					delete_hostgroup_networks(values[0])
+
+					# si la liste est vide, quitter après avoir tout supprimer
+					if values[i] == "":
+						return redirect("hostgroup")
+
+					# Pour l'instant, c'est une string comme '[X.X.X.X/XX,...]' donc il faut caster en [X.X.X.X/XX,...]
+					casted_list = ast.literal_eval(values[i])
+					for element in casted_list:
+						element = element.replace("/","%2F")
+						response = requests.put(
+								f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup}/{keys[i]}/{element}",
+								auth=(FNM_API_USER, FNM_API_PASSWORD),
+							)
+
 				else:
 					response = requests.put(
 						f"{FNM_API_ENDPOINT}/hostgroup/{values[0]}/{keys[i]}/{values[i]}",
@@ -158,6 +178,7 @@ def modify_hostgroup(request, hostgroup):
 		initial_data = {
 			'name': hostgroup.name,
 			'description': hostgroup.description,
+			'mapped_networks': hostgroup.networks,
 			'threshold_pps': hostgroup.threshold_pps,
 			'threshold_mbps': hostgroup.threshold_mbps,
 			'threshold_flows': hostgroup.threshold_flows,
@@ -166,6 +187,25 @@ def modify_hostgroup(request, hostgroup):
 		form = ModifyHostgroupForm(initial=initial_data)
 
 		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
+
+def delete_hostgroup_networks(name):
+	hostgroups_networks = requests.get(
+		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	casted_list = hostgroups_networks.json()["values"]
+	if casted_list is not None:
+		for element in casted_list:
+			element = element.replace("/","%2F")
+			response = requests.delete(
+			f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks/{element}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code != 200:
+			messages.error(request, response.text)
+
+	if hostgroups_networks.status_code != 200:
+		messages.error(request, response.text)
 
 
 @login_required
