@@ -205,57 +205,6 @@ def modify_hostgroup(request, hostgroup):
 
 		return render(request, 'modify_hostgroup.html', {'form': form, 'hostgroup': hostgroup})
 
-def is_valid_cidr_list_or_wide(input_str):
-    # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
-    if input_str == "":
-    	return True 
-    # définir une sous fonction qui vérifie si un CIDR est ok 
-    def is_valid_cidr(cidr):
-        try:
-            ip_addr = ipaddress.ip_network(cidr, False)
-            return True
-        except ValueError:
-            return False
-
-    try:
-        # Essayer de transformer la chaîne en une liste avec ast.literal_eval
-        cidr_list = ast.literal_eval(input_str)
-
-        # Vérifier que cidr_list est bien une liste
-        if not isinstance(cidr_list, list):
-            return False
-
-        # Vérifier que tous les éléments de la liste sont des chaînes valides d'adresses IP CIDR
-        for item in cidr_list:
-            if not isinstance(item, str) or not is_valid_cidr(item):
-                return False
-
-        return True
-    except (SyntaxError, ValueError):
-        return False
-
-def delete_hostgroup_networks(name):
-	hostgroups_networks = requests.get(
-		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
-		auth=(FNM_API_USER, FNM_API_PASSWORD),
-	)
-	casted_list = hostgroups_networks.json()["values"]
-	if casted_list is not None:
-		try:
-			for element in casted_list:
-				element = element.replace("/","%2F")
-				response = requests.delete(
-				f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks/{element}",
-				auth=(FNM_API_USER, FNM_API_PASSWORD),
-			)
-		except:
-			messages.error(request, response.text)
-		if response.status_code != 200:
-			messages.error(request, response.text)
-
-	if hostgroups_networks.status_code != 200:
-		messages.error(request, response.text)
-
 
 @login_required
 def delete_hostgroup(request, name):
@@ -564,6 +513,59 @@ def add_hostgroup(req):
 			error_message = f"Description setting error. Please try again. \n{response.text}"
 			return error_message
 	return False
+
+
+def is_valid_cidr_list_or_wide(input_str):
+    # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
+    if input_str == "":
+    	return True 
+    # définir une sous fonction qui vérifie si un CIDR est ok 
+    def is_valid_cidr(cidr):
+        try:
+            ip_addr = ipaddress.ip_network(cidr, False)
+            return True
+        except ValueError:
+            return False
+
+    try:
+        # Essayer de transformer la chaîne en une liste avec ast.literal_eval
+        cidr_list = ast.literal_eval(input_str)
+
+        # Vérifier que cidr_list est bien une liste
+        if not isinstance(cidr_list, list):
+            return False
+
+        # Vérifier que tous les éléments de la liste sont des chaînes valides d'adresses IP CIDR
+        for item in cidr_list:
+            if not isinstance(item, str) or not is_valid_cidr(item):
+                return False
+
+        return True
+    except (SyntaxError, ValueError):
+        return False
+
+
+def delete_hostgroup_networks(name):
+	hostgroups_networks = requests.get(
+		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	casted_list = hostgroups_networks.json()["values"]
+	if casted_list is not None:
+		try:
+			for element in casted_list:
+				element = element.replace("/","%2F")
+				response = requests.delete(
+				f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks/{element}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+			)
+		except:
+			messages.error(request, response.text)
+		if response.status_code != 200:
+			messages.error(request, response.text)
+
+	if hostgroups_networks.status_code != 200:
+		messages.error(request, response.text)
 
 #### Hostgroup functions end ####
 
