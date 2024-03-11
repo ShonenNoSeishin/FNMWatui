@@ -289,7 +289,7 @@ def flowspec(request):
 	flowspecs = Flowspec.objects.filter(net__user=request.user)
 	#print(flowspecs)
 	#messages.error(request, flowspecs)
-	return render(request, "flowspec.html", {'current_view': 'flowspec', "form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs})
+	return render(request, "flowspec.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs, 'current_view': 'flowspec'})
 
 
 @login_required
@@ -312,8 +312,10 @@ def flowspec_redeploy(request):
 	if request.method == "POST":
 	  rules = Flowspec.objects.filter(net__user=request.user)
 	  for rule in rules:
-		  if rule.active == True:
-			  insert_flowspec_route(rule)
+		  if insert_flowspec_route(rule):
+			  rule.active = True
+			  rule.save()
+			  
 	return redirect("/flowspec/")
 
 
@@ -563,7 +565,6 @@ def is_valid_cidr_list_or_wide(input_str):
         return False
 
 
-@login_required
 def delete_hostgroup_networks(name):
 	hostgroups_networks = requests.get(
 		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
@@ -608,30 +609,33 @@ def check_other_fl_rules(request):
 			announce_data = flowspec_data.get('announce', {})
 			action_type = announce_data.get('action_type', '')
 			destination_prefix = announce_data.get('destination_prefix', '')
-			protocols = announce_data.get('protocols', ['']) if announce_data.get('protocols') else ''
+			protocols = announce_data.get('protocols', ['']) if announce_data.get('protocols') else [""] # c'est "any"
 			source_port = announce_data.get('source_ports', []) if announce_data.get('source_ports') else [-1] # -1 c'est "any"
 			destination_port = announce_data.get('destination_ports', []) if announce_data.get('destination_ports') else [-1] # -1 c'est "any"
-			source_prefix = announce_data.get('source_prefix', '')
+			source_prefix = announce_data.get('source_prefix', '') if announce_data.get('source_prefix') else ""
 			
 			# s'il y a + d'une entrée en port ou protocoles, ça ne vient pas de l'application car ça ne le permet pas
-			if len(source_port) > 1 or len(destination_port) > 1 or protocols == '' :
-				rules_not_in_db.append([action_type, destination_prefix, source_port, source_prefix, destination_port, protocols, uid])
+			if len(source_port) > 1 or len(destination_port) > 1 or len(protocols) > 1 :
+				rules_not_in_db.append([action_type, destination_prefix, source_port, source_prefix, destination_port, protocols[0], uid])
 			else:
 				api_list.append([action_type, destination_prefix, source_port[0], source_prefix, destination_port[0], protocols[0], uid])
 
 		for element in db_flowspecs:
 			db_list.append([element.action, element.dstip, element.srcprt, element.srcip, element.dstprt, element.protocol])
 
-		for i in api_list[:6:]:
-			if i not in db_list:
+		# messages.error(request, f"{api_list[0][:6:]} |||| {db_list[0]}")
+		for i in api_list:
+			if i[:6:] not in db_list:
 				rules_not_in_db.append(i)
 
 		for i in rules_not_in_db:
 			if i[2] == -1 or i[2] == [-1]:
 				i[2] = "any"
+			if i[3] == "":
+				i[3] = "any"
 			if i[4] == -1 or i[4] == [-1]:
 				i[4] = "any"
-			if i[5] == '':
+			if i[5] == "":
 				i[5] = "any"
 		return rules_not_in_db
 
@@ -639,7 +643,6 @@ def check_other_fl_rules(request):
 		return None
 
 
-@login_required
 def insert_flowspec_route(rule):
 
 	# Set the flowspec mandatory route details
@@ -670,7 +673,6 @@ def insert_flowspec_route(rule):
 	return False
 
 
-@login_required
 def remove_flowspec_route(rule):
 	# Make the API call to insert the flowspec route
 	response = requests.get(

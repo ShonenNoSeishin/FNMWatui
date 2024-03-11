@@ -133,7 +133,7 @@
         </br>
             <button type="submit" value="Submit" class="button is-block is-info" style="width: 100%;">Create Flowspec Rule</button>
             {% if messages %}
-              <ul class="messages">
+              <ul class="messages" style="color: red;">
                   {% for message in messages %}
                   <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                   {% endfor %}
