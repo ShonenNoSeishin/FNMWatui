@@ -15,6 +15,7 @@ urlpatterns = [
     path("flowspec_redeploy/", views.flowspec_redeploy, name="flowspec_redeploy"),
     path("help/", views.help, name="help"),
     path("hostgroup", views.hostgroup, name="hostgroup"),
+    path('hostgroup_info/<str:hostgroup_name>/', views.hostgroup_info, name='hostgroup_info'),
     path("modify_hostgroup/<str:hostgroup>/", views.modify_hostgroup, name="modify_hostgroup"),
     path('delete_hostgroup/<str:name>/', views.delete_hostgroup, name='delete_hostgroup'),
     path('api_flowspec_delete/', views.api_flowspec_delete, name='api_flowspec_delete'),

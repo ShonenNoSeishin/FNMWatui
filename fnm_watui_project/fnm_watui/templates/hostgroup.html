@@ -52,6 +52,13 @@
                 <td><button type="submit" class="btn-modify">✅</button></td>
                 <td><a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a></td>
             </tr>
+          <tr>
+            <td colspan="9" style="text-align: center;">
+                <a href="{% url 'hostgroup_info' hostgroup.name %}" style="color: darkblue;">❓More informations for this group❓</a>
+            </td>
+        </tr>
+
+
           </form>
 
         </table>

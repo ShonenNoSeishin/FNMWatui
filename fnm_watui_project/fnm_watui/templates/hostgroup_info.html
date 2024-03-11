@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% for i in hostgroup_info %}
+  <h1 class="title" style="color: black; border-block: 2px solid black; border-bottom: 2px solid black;">
+    hostgroup "{{ i.name }}" informations
+  </h1>
+{% endfor %}
+
+
+  {% if messages %}
+    <ul class="messages" style="color:red;">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if request.user.is_authenticated %}
+      <div>
+        {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
+      </div>
+      <div style="text-align: left;">
+        <a href="{% url 'hostgroup' %}" style="color: darkblue;"><b>⬅️ Back to hostgroups</b></a>
+      </div>
+      <br>
+      <div style="margin: 0 auto; text-align: center;">
+        {% for i in hostgroup_info %}
+          <table class="table" style="margin: 0 auto; text-align: left;">
+            {% for key, value in i.items %}
+              <tr>
+                <th>{{ key|title }}</th>
+                <td>{{ value }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endfor %}
+      </div>
+
+  {% else %}
+      <h1 class="title">You are not logged in</h1>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+  {% endif %}
+{% endblock %}
+

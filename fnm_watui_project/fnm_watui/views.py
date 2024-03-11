@@ -123,6 +123,12 @@ def hostgroup(request):
 
 
 @login_required
+def hostgroup_info(request, hostgroup_name):
+    hostgroup_info = get_hostgroup_info(hostgroup_name)
+    return render(request, "hostgroup_info.html", {"hostgroup_info": hostgroup_info})
+
+
+@login_required
 def modify_hostgroup(request, hostgroup):
 	if request.method == 'POST':
 		form = ModifyHostgroupForm(request.POST)
@@ -469,6 +475,7 @@ def get_blackhole():
 	return False
 
 
+@login_required
 def set_blackhole(ip_to_blackhole):
 	response = requests.put(
 			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
@@ -515,6 +522,17 @@ def add_hostgroup(req):
 	return False
 
 
+def get_hostgroup_info(hostgroup_name):
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup_name}",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	if response.status_code == 200:
+		json_data = response.json()
+		return json_data["values"]
+	return False
+	
+
 def is_valid_cidr_list_or_wide(input_str):
     # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
     if input_str == "":
@@ -545,6 +563,7 @@ def is_valid_cidr_list_or_wide(input_str):
         return False
 
 
+@login_required
 def delete_hostgroup_networks(name):
 	hostgroups_networks = requests.get(
 		f"{FNM_API_ENDPOINT}/hostgroup/{name}/networks",
@@ -705,33 +724,6 @@ def remove_flowspec_route(rule):
 
 
 ####### FONCTIONS PAS ENCORE UTILISEES #######
-
-
-
-
-# def unban_ip_blackhole(ip_to_unban):
-# 	blackholes = get_blackhole()
-# 	for i in blackholes:
-# 		if i.get('ip', '') == f"{ip_to_unban}/32":
-# 			blackhole_uuid = i.get('uuid','')
-# 			break
-# 	response = requests.delete(
-# 			f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
-# 			auth=(FNM_API_USER, FNM_API_PASSWORD),
-# 	)
-# 	if response.status_code == 200:
-# 		return True
-# 	return False
-
-def get_hostgroup_info(hostgroup_name):
-	response = requests.get(
-			f"{FNM_API_ENDPOINT}/hostgroup/{hostgroup_name}",
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-	if response.status_code == 200:
-		json_data = response.json()
-		return json_data["values"]
-	return False
 
 ####### FONCTIONS PAS ENCORE UTILISEES (fin) #######
 
