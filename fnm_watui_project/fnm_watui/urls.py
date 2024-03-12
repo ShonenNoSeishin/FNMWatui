@@ -23,4 +23,5 @@ urlpatterns = [
     path('set_global_ban/', views.set_global_ban, name='set_global_ban'),
     path('set_global_unban/', views.set_global_unban, name='set_global_unban'),
     path('unban_ip_blackhole/<path:ip_to_unban>/', views.unban_ip_blackhole_view, name='unban_ip_blackhole_view'),
+    path('force_api_commit/<str:current_tab>/', views.force_api_commit, name='force_api_commit'),
 ]

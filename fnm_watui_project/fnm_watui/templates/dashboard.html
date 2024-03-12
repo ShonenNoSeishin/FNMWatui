@@ -14,7 +14,9 @@
 		}
 	</style>
 </head>
+
 <div class="flex-container" style="display: flex; flex-direction: column; justify-content: space-between; text-align: center; align-content: center; height: 100%; align-items: flex-start; margin-top: 0%;">
+	
 	<div class="flex-item" style="width: 100%; align-content: center; text-align: center; margin-bottom: 5%;">
 		{% if request.user.is_authenticated %}
 		<h1 class="title" style=" color:  black;  border-block: 2px solid black; border-bottom: 2px solid black;">
@@ -28,6 +30,7 @@
 		    </ul>
 		  {% endif %}
 	</div>
+
 	<div class="flex-item" style="width: 100%; justify-content: space-between; flex-wrap: wrap; align-content: center; text-align: center;">
 	    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Enable or disable automated banning and unbanning </h2>
 		<div class="flex-item" style="flex-wrap: wrap; display: flex; justify-content: space-between; width: 90%; height: 40%;">
@@ -149,6 +152,7 @@
 		</div>
 
 	  </div>
+	  <br>
 	  {% else %}
 	    <h1 class="title">You are not logged in</h1>
 	    <p><a href="{% url 'login' %}">Log In</a></p>

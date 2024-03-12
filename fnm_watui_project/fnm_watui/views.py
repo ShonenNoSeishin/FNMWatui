@@ -18,6 +18,11 @@ import os
 import json
 import ast
 import ipaddress
+import time
+import threading
+import asyncio
+import httpx
+from asgiref.sync import sync_to_async
 
 # Set the FastNetMon API endpoint and authentication details
 DEFAULT_API_ENDPOINT = "http://127.0.0.1:10007"
@@ -33,7 +38,7 @@ FNM_API_PASSWORD = os.environ.get('FNM_API_PASSWORD',DEFAULT_API_PASSWORD)
 #########################
 
 def home(request):
-    return render(request, 'home.html', {'current_view': 'home'})
+	return render(request, 'home.html', {'current_view': 'home'})
 
 
 @login_required
@@ -47,6 +52,10 @@ def dashboard(request):
 	global_ban_status = get_global_ban()
 	global_unban_status = get_global_unban()
 	host_traffic = get_hosts_traffic()
+	# si l'API prend du temps à charger
+	if host_traffic is None : 
+		time.sleep(0.2)
+		return redirect("dashboard")
 	blackhole_info = get_blackhole()
 
 	host_traffic_from_context = []
@@ -83,6 +92,11 @@ def dashboard(request):
 				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
 			else:
 				return redirect('dashboard')
+
+		# bool_anwser = api_commit()
+		# if not bool_anwser:
+		# 	messages.error(request, "commit didn't successed")
+
 	else:
 		form = add_blackhole_form()
 		return render(request, "dashboard.html", {'current_view': 'dashboard', "traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
@@ -90,18 +104,22 @@ def dashboard(request):
 
 @login_required	
 def unban_ip_blackhole_view(request, ip_to_unban):
-    blackholes = get_blackhole()
-    for i in blackholes:
-        if i.get('ip', '') == f"{ip_to_unban}/32" or i.get('ip', '') == f"{ip_to_unban}":
-            blackhole_uuid = i.get('uuid', '')
-            break
-    response = requests.delete(
-        f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
-        auth=(FNM_API_USER, FNM_API_PASSWORD),
-    )
-    if response.status_code != 200:
-    	messages.error(request, f"can't delete this blackhole rule : {response.text}")
-    return redirect('dashboard')  # Remplacez 'your_redirect_url' par l'URL à laquelle vous souhaitez rediriger
+	blackholes = get_blackhole()
+	for i in blackholes:
+		if i.get('ip', '') == f"{ip_to_unban}/32" or i.get('ip', '') == f"{ip_to_unban}":
+			blackhole_uuid = i.get('uuid', '')
+			break
+	response = requests.delete(
+		f"{FNM_API_ENDPOINT}/blackhole/{blackhole_uuid}",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
+	if response.status_code != 200:
+		messages.error(request, f"can't delete this blackhole rule : {response.text}")
+	# else:
+		# bool_anwser = api_commit()
+		# if not bool_anwser:
+		# 	messages.error(request, "commit didn't successed")
+	return redirect('dashboard') 
 
 
 @login_required
@@ -116,6 +134,9 @@ def hostgroup(request):
 		if error_message : 
 			return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form, 'error_message': error_message})
 		else:
+			# bool_anwser = api_commit()
+			# if not bool_anwser:
+			# 	messages.error(request, "commit didn't successed")
 			return redirect("hostgroup")
 	else:
 		form = HostgroupForm()
@@ -124,8 +145,8 @@ def hostgroup(request):
 
 @login_required
 def hostgroup_info(request, hostgroup_name):
-    hostgroup_info = get_hostgroup_info(hostgroup_name)
-    return render(request, "hostgroup_info.html", {"hostgroup_info": hostgroup_info})
+	hostgroup_info = get_hostgroup_info(hostgroup_name)
+	return render(request, "hostgroup_info.html", {"hostgroup_info": hostgroup_info})
 
 
 @login_required
@@ -194,6 +215,10 @@ def modify_hostgroup(request, hostgroup):
 
 				if response.status_code != 200:
 					messages.error(request, response.text)
+
+			# bool_anwser = api_commit()
+			# if not bool_anwser:
+			# 	messages.error(request, "commit didn't successed")
 			return redirect("hostgroup")
 	else:
 		# initial_data = {
@@ -224,6 +249,9 @@ def delete_hostgroup(request, name):
 		)
 
 		if response.status_code == 200:
+			# bool_anwser = api_commit()
+			# if not bool_anwser:
+			# 	messages.error(request, "commit didn't successed")
 			return redirect("hostgroup")
 		else:
 			messages.error(request, f"Hostgroup deletion error. Please try again. \n{response.text}")
@@ -248,6 +276,9 @@ def network(request):
 			network.save()
 			messages.success(request, "You have successfully assigned a network.")
 			# Redirect to home (/)
+			# bool_anwser = api_commit()
+			# if not bool_anwser:
+			# 	messages.error(request, "commit didn't successed")
 			return redirect("/network/")
 		else:
 			# The supplied form contained errors - just print them to the terminal.
@@ -285,6 +316,9 @@ def flowspec(request):
 			flowspec.save()
 			print("Flowspec passes validation")
 			messages.success(request, "You have sucessfully commited a Flowspec rule. congrats")
+			# bool_anwser = api_commit()
+			# if not bool_anwser:
+			# 	messages.error(request, "commit didn't successed")
 	flowspecs = Flowspec.objects.filter(net__user=request.user)
 	#print(flowspecs)
 	#messages.error(request, flowspecs)
@@ -303,30 +337,40 @@ def flowspec_toggle(request):
 			if insert_flowspec_route(w):
 				w.active = True
 				w.save()
+		# bool_anwser = api_commit()
+		# if not bool_anwser:
+		# 	messages.error(request, "commit didn't successed")
 	return redirect("/flowspec/")
 
 
 @login_required
 def flowspec_redeploy(request):
 	if request.method == "POST":
-	  rules = Flowspec.objects.filter(net__user=request.user)
-	  for rule in rules:
-		  if insert_flowspec_route(rule):
-			  rule.active = True
-			  rule.save()
-			  
+		rules = Flowspec.objects.filter(net__user=request.user)
+		for rule in rules:
+			if insert_flowspec_route(rule):
+				rule.active = True
+				rule.save()
+	
+	# bool_anwser = api_commit()
+	# if not bool_anwser:
+	# 	messages.error(request, "commit didn't successed")
 	return redirect("/flowspec/")
 
 
 @login_required
 def flowspec_flush(request):
 	if request.method == "POST":
-	  #nets = Network.objects.all(id__=request.user)
-	  rules = Flowspec.objects.filter(net__user=request.user)
-	  for rule in rules: 
-		  if remove_flowspec_route(rule):
-			  rule.active = False
-			  rule.save()
+		#nets = Network.objects.all(id__=request.user)
+		rules = Flowspec.objects.filter(net__user=request.user)
+		for rule in rules: 
+			if remove_flowspec_route(rule):
+				rule.active = False
+				rule.save()
+
+	# bool_anwser = api_commit()
+	# if not bool_anwser:
+	# 	messages.error(request, "commit didn't successed")
 	return redirect("/flowspec/")
 
 
@@ -345,8 +389,11 @@ def modify_flowspec_route(request, flowspec_id):
 			print("Flowspec passes validation.")
 			# messages.success(request, "You have sucessfully modified a Flowspec rule.")
 			return redirect("flowspec")
-	#print(flowspecs)
-	#messages.error(request, flowspecs)
+
+		# bool_anwser = api_commit()
+		# if not bool_anwser:
+		# 	messages.error(request, "commit didn't successed")
+	
 	flowspecs = Flowspec.objects.filter(net__user=request.user)
 	form = FlowspecForm(instance=w)
 	api_only_flowspecs = check_other_fl_rules(request)
@@ -377,6 +424,9 @@ def api_flowspec_delete(request):
 			f"{FNM_API_ENDPOINT}/flowspec/{rule_uid}",
 			auth=(FNM_API_USER, FNM_API_PASSWORD),
 		)
+		# bool_anwser = api_commit()
+		# if not bool_anwser:
+		# 	messages.error(request, "commit didn't successed")
 	except:
 		pass
 	return redirect("/flowspec/")
@@ -387,6 +437,15 @@ def user_logout(request):
 	logout(request)
 	return redirect("home")
 
+
+def force_api_commit(request, current_tab):
+	result = api_commit()
+	time.sleep(3)
+	if result:
+		messages.success(request, "API Commit successful.")
+	else:
+		messages.error(request, "API Commit failed.")
+	return redirect(f"{current_tab}")  # Redirigez après le traitement
 
 #####################################################
 ######### Fonctions utilisées par les views #########
@@ -499,7 +558,6 @@ def get_blackhole():
 	return False
 
 
-@login_required
 def set_blackhole(ip_to_blackhole):
 	response = requests.put(
 			f"{FNM_API_ENDPOINT}/blackhole/{ip_to_blackhole}",
@@ -558,33 +616,33 @@ def get_hostgroup_info(hostgroup_name):
 
 
 def is_valid_cidr_list_or_wide(input_str):
-    # si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
-    if input_str == "":
-    	return True 
-    # définir une sous fonction qui vérifie si un CIDR est ok 
-    def is_valid_cidr(cidr):
-        try:
-            ip_addr = ipaddress.ip_network(cidr, False)
-            return True
-        except ValueError:
-            return False
+	# si input_str est complètement vide, ça va aussi car c'est pour tout supprimer
+	if input_str == "":
+		return True 
+	# définir une sous fonction qui vérifie si un CIDR est ok 
+	def is_valid_cidr(cidr):
+		try:
+			ip_addr = ipaddress.ip_network(cidr, False)
+			return True
+		except ValueError:
+			return False
 
-    try:
-        # Essayer de transformer la chaîne en une liste avec ast.literal_eval
-        cidr_list = ast.literal_eval(input_str)
+	try:
+		# Essayer de transformer la chaîne en une liste avec ast.literal_eval
+		cidr_list = ast.literal_eval(input_str)
 
-        # Vérifier que cidr_list est bien une liste
-        if not isinstance(cidr_list, list):
-            return False
+		# Vérifier que cidr_list est bien une liste
+		if not isinstance(cidr_list, list):
+			return False
 
-        # Vérifier que tous les éléments de la liste sont des chaînes valides d'adresses IP CIDR
-        for item in cidr_list:
-            if not isinstance(item, str) or not is_valid_cidr(item):
-                return False
+		# Vérifier que tous les éléments de la liste sont des chaînes valides d'adresses IP CIDR
+		for item in cidr_list:
+			if not isinstance(item, str) or not is_valid_cidr(item):
+				return False
 
-        return True
-    except (SyntaxError, ValueError):
-        return False
+		return True
+	except (SyntaxError, ValueError):
+		return False
 
 
 def delete_hostgroup_networks(name):
@@ -730,7 +788,6 @@ def remove_flowspec_route(rule):
 		return True
 
 	# print(uuid)
-
 	response = requests.delete(
 		f"{FNM_API_ENDPOINT}/flowspec/{uuid}",
 		auth=(FNM_API_USER, FNM_API_PASSWORD),
@@ -742,12 +799,21 @@ def remove_flowspec_route(rule):
 	return False
 
 #### Flowspec functions end ####
+def api_commit():
+	response = requests.put(
+		f"{FNM_API_ENDPOINT}/commit",
+		auth=(FNM_API_USER, FNM_API_PASSWORD),
+	)
 
+	# Check if the API call was successful
+	if response.status_code == 200:
+		return True
+	return False
 
+# def api_commit_async():
+# 	result = await sync_to_async(api_commit)
+# 	return result
 
-
-
-####### FONCTIONS PAS ENCORE UTILISEES #######
-
-####### FONCTIONS PAS ENCORE UTILISEES (fin) #######
+# def run_api_commit():
+#     threading.Thread(target=api_commit).start()
 
