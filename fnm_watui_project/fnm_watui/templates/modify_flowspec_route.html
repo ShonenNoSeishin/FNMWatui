@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if request.user.is_authenticated %}
+
+<h1 class="title" style="color: black; border-block: 2px solid black; border-bottom: 2px solid black;">
+  <b>Change my rule</b>
+</h1>
+<h2 class="subtitle" style="color: black;">
+  Modify flowspec rule
+</h2>
+
+<div class="column is-4 is-offset-4">
+        <form id="flowspec_form" method="POST" action="{% url 'modify_flowspec_route' flowspec_id %}">
+              {% csrf_token %}
+                      {{form.as_p}}
+        </br>
+            <button type="submit" value="Submit" class="button is-block is-info" style="width: 100%;">Modify Flowspec Rule</button>
+            {% if messages %}
+              <ul class="messages" style="color: red;">
+                  {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}" style="color: red;"{% endif %}>{{ message }}</li>
+                  {% endfor %}
+              </ul>
+            {% endif %}
+        </form>
+      </div>
+
+
+{% endif %}
+{% endblock %}

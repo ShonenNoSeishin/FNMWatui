@@ -284,7 +284,7 @@ def flowspec(request):
 			flowspec = form.save(commit=False)
 			flowspec.save()
 			print("Flowspec passes validation")
-			messages.success(request, "You have sucessfully commited a Flowspec rule.")
+			messages.success(request, "You have sucessfully commited a Flowspec rule. congrats")
 	flowspecs = Flowspec.objects.filter(net__user=request.user)
 	#print(flowspecs)
 	#messages.error(request, flowspecs)
@@ -331,44 +331,27 @@ def flowspec_flush(request):
 
 
 @login_required	
-def modify_flowspec_route(request):
-	form = ModifyFlowspecForm(request.POST)
-	if form.is_valid():
-		# Obtenez les données du formulaire valides
-		destination_prefix = form.cleaned_data['destination_prefix']
-		action_type = form.cleaned_data['action_type']
-		source_prefix = form.cleaned_data['source_prefix']
-		source_ports = form.cleaned_data['source_ports']
-		destination_ports = form.cleaned_data['destination_ports']
-		protocols = form.cleaned_data['protocols']
+def modify_flowspec_route(request, flowspec_id):
+	w = Flowspec.objects.get(id=flowspec_id)
+	if request.method == "POST":
+		form = FlowspecForm(request.POST, instance=w)
+		if form.is_valid():
+			w.delete()
+			messages.error(request, f"test : {w}")
+			print(f"test : {w}")
+			# Save the new category to the database.
+			flowspec = form.save(commit=False)
+			flowspec.save()
+			print("Flowspec passes validation.")
+			# messages.success(request, "You have sucessfully modified a Flowspec rule.")
+			return redirect("flowspec")
+	#print(flowspecs)
+	#messages.error(request, flowspecs)
+	flowspecs = Flowspec.objects.filter(net__user=request.user)
+	form = FlowspecForm(instance=w)
+	api_only_flowspecs = check_other_fl_rules(request)
+	return render(request, "modify_flowspec_route.html", {"form": form, "flowspecs": flowspecs, "api_only_flowspecs": api_only_flowspecs, "flowspec_id": flowspec_id, 'current_view': 'flowspec'})
 
-		route = {
-			"destination_prefix": destination_prefix,
-			"action_type": action_type,
-		}
-
-		# add the flowspec optional route details
-		if source_prefix:
-			route["source_prefix"] = source_prefix
-		if source_ports > 0:
-			route["source_ports"] = [source_ports]
-		if destination_ports > 0:
-			route["destination_ports"] = [destination_ports]
-		if protocol:
-			route["protocols"] = [protocols]
-
-		# Make the API call to insert the flowspec route
-		response = requests.put(
-			f"{FNM_API_ENDPOINT}/flowspec",
-			json=route,
-			auth=(FNM_API_USER, FNM_API_PASSWORD),
-		)
-		# Check if the API call was successful
-		if response.status_code != 200:
-			messages.error(request, response.text)
-		return redirect("flowspec")
-	else:
-		pass
 
 @login_required
 def flowspec_delete(request):
@@ -735,7 +718,7 @@ def remove_flowspec_route(rule):
 	if rule.protocol:
 		route["protocols"] = [rule.protocol]
 
-	print(route)
+	# print(route)
 
 	uuid = None
 	for value in response.json()["values"]:
@@ -746,7 +729,7 @@ def remove_flowspec_route(rule):
 		# notfound
 		return True
 
-	print(uuid)
+	# print(uuid)
 
 	response = requests.delete(
 		f"{FNM_API_ENDPOINT}/flowspec/{uuid}",
