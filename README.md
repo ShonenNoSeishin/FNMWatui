@@ -181,7 +181,7 @@ python manage.py migrate fnm_watui
 
 ## Create the admin django user
 
-You can now access the web interface throught http://<Your_IP>:8048 but you have to create a django admin account to access the management interface :
+You can now access the web interface throught http://<Your_IP>:8048 or https://<Your_IP>:8443 for https, but you have to create a django admin account to access the management interface :
 
 ````bash
 # Enter in the container (note : fnmwatui_project is the name of the container)
