@@ -94,3 +94,7 @@ curl -X GET -u admin:<API_PWD> http://192.168.3.114:10007/license
 
 ## Commit les changements sur l'API 
 curl -X PUT -u admin:<API_PWD> http://192.168.3.114:10007/commit
+
+
+## Plus d'option FNM ici - More FNM options there
+https://fastnetmon.com/docs-fnm-advanced/fastnetmon-advanced-configuration-options/

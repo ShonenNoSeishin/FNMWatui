@@ -9,6 +9,13 @@
 <h2 class="subtitle" style="color: black;">
   Modify flowspec rule
 </h2>
+{% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
 
 <div class="column is-4 is-offset-4">
         <form id="flowspec_form" method="POST" action="{% url 'modify_flowspec_route' flowspec_id %}">
@@ -16,13 +23,6 @@
                       {{form.as_p}}
         </br>
             <button type="submit" value="Submit" class="button is-block is-info" style="width: 100%;">Modify Flowspec Rule</button>
-            {% if messages %}
-              <ul class="messages" style="color: red;">
-                  {% for message in messages %}
-                  <li{% if message.tags %} class="{{ message.tags }}" style="color: red;"{% endif %}>{{ message }}</li>
-                  {% endfor %}
-              </ul>
-            {% endif %}
         </form>
       </div>
 

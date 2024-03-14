@@ -9,7 +9,14 @@
 <h2 class="subtitle" style="color: black;">
   Generate and deploy flowspec rules on your own networks
 </h2>
-
+<a href="" title="Here you can see, set, and delete flowspecs rules. It's like router ACL. There is a first tab with rules stocked in Django and when you enable it, it share it with the API. If you disable it, it send the API to remove the rule. The second tab refer the rules currently stored in the API but not in Django">🔎</a>
+{% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
 <div style="align-content: center; text-align: center; align-items: center; margin: auto;">
   <h2 style="text-align: center; text-shadow: aliceblue; color: steelblue;"> <b><u>DB flowspec rules :</u></b>
   <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue; align-content: center; text-align: center; align-items: center; margin: auto;">
@@ -137,13 +144,6 @@
                       {{form.as_p}}
         </br>
             <button type="submit" value="Submit" class="button is-block is-info" style="width: 100%;">Create Flowspec Rule</button>
-            {% if messages %}
-              <ul class="messages" style="color: red;">
-                  {% for message in messages %}
-                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                  {% endfor %}
-              </ul>
-            {% endif %}
         </form>
       </div>
 

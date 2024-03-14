@@ -16,15 +16,23 @@
       {% if error_message %}
         <p style="color: red;">{{ error_message }}</p>
       {% endif %}
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
       <h1>Add Hostgroup</h1>
       <form method="post" action="">
           {% csrf_token %}
           {{ form.as_p }}
           <button type="submit">Add Hostgroup</button>
       </form>
-      <h2>Hostgroups</h2>
       <br>
-      <p> Thresholds <br> (TCP + UDP + ICMP, both directions)</p>
+      <h2 class="subtitle" style="color: black;"><b>Hostgroups</b></h2>
+      
+      <a href="" title="Here you can see, set, and delete hostgroups. it's a way to map some network ranges and set them same rules (like thresholds). You can modify directly in the tabs and validate with the button. You can also get all the informations of the hostgroup by selecting 'more informations for this group' and you can specify the hosts of the hostgroups should be banned if thresholds are exceeds">🔎</a>
       {% for hostgroup in hostgroups %}
       <div class="table-container">
         <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue;">
@@ -32,10 +40,10 @@
               <th class="has-text-centered" style="width: 200%;">Name</th>
               <th class="has-text-centered">Description</th>
               <th class="has-text-centered">Mapped networks</th>
-              <th class="has-text-centered">Treshold pps limit</th>
-              <th class="has-text-centered">Treshold Mbps (Bandwidth) limit</th>
-              <th class="has-text-centered">Treshold Flows limit</th>
-              <th class="has-text-centered"> ban enabled ? (based on Threshold) </th>
+              <th class="has-text-centered">Treshold pps limit<a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered">Treshold Mbps (Bandwidth) limit <a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered">Treshold Flows limit <a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered"> ban enabled ? <a href="" title="based on Threshold">🔎</a></th>
               <th class="has-text-centered" style="color: orange;">Validate modifications</th>
               <th class="has-text-centered">Delete</th>
           </tr>

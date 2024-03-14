@@ -41,9 +41,9 @@ def home(request):
 	return render(request, 'home.html', {'current_view': 'home'})
 
 
-@login_required
-def template(request):
-	return render(request, "template.html")
+# @login_required
+# def template(request):
+# 	return render(request, "template.html")
 
 
 @login_required
@@ -89,7 +89,7 @@ def dashboard(request):
 			ban_response = set_blackhole(form.cleaned_data['blackholed_ip'])
 			if not ban_response:
 				messages.error(request, f"can't create this blackhole rule : {ban_response.text}")
-				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
+				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form, 'current_view': 'dashboard',})
 			else:
 				return redirect('dashboard')
 
@@ -132,7 +132,7 @@ def hostgroup(request):
 	if request.method == 'POST':
 		error_message = add_hostgroup(request)
 		if error_message : 
-			return render(request, "hostgroup.html", {"hostgroups": hostgroups.json()["values"], "form": form, 'error_message': error_message})
+			return render(request, "hostgroup.html", {'current_view': 'hostgroup', "hostgroups": hostgroups.json()["values"], "form": form, 'error_message': error_message})
 		else:
 			# bool_anwser = api_commit()
 			# if not bool_anwser:
@@ -146,7 +146,7 @@ def hostgroup(request):
 @login_required
 def hostgroup_info(request, hostgroup_name):
 	hostgroup_info = get_hostgroup_info(hostgroup_name)
-	return render(request, "hostgroup_info.html", {"hostgroup_info": hostgroup_info})
+	return render(request, "hostgroup_info.html", {'current_view': 'hostgroup', "hostgroup_info": hostgroup_info})
 
 
 @login_required
@@ -438,7 +438,7 @@ def user_logout(request):
 	return redirect("home")
 
 
-def force_api_commit(request, current_tab):
+def force_api_commit(request, current_tab="dashboard"):
 	result = api_commit()
 	time.sleep(3)
 	if result:
@@ -446,6 +446,7 @@ def force_api_commit(request, current_tab):
 	else:
 		messages.error(request, "API Commit failed.")
 	return redirect(f"{current_tab}")  # Redirigez après le traitement
+
 
 #####################################################
 ######### Fonctions utilisées par les views #########

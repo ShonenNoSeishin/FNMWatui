@@ -10,7 +10,16 @@
   <h2 class="subtitle" style="color: black; margin-top: 0%; ">
     Allocated networks
   </h2>
-  <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p><br>
+  {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+  <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p>
+  <a href="" title="Here you can see, set, and delete some network ranges. These ranges aren't mapped to the API, it's only to manage easier your flowspecs rules but BE CARE TO THE PREVIOUS WARNING">🔎</a>
+  <br>
   <div class="block" style="margin-top: 20%;">
     {% for network in networks %}
       <div class="notification is-link" style="float: left; width: 92%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
@@ -49,13 +58,6 @@
         {% csrf_token %}
         {{ form.as_p }}
         <button class="button is-info" style="width: 110%; margin: 0 auto;">Allocate Network</button>
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
     </form>
   </div>
 
