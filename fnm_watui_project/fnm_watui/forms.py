@@ -93,6 +93,10 @@ class FlowspecForm(forms.ModelForm):
             self.user = user
             self.fields['net'].queryset = Network.objects.filter(user=user)
 
+        # Ajouter les placeholders aux champs srcip et dstip
+        self.fields['srcip'].widget.attrs['placeholder'] = 'X.X.X.X/XX'
+        self.fields['dstip'].widget.attrs['placeholder'] = 'X.X.X.X/XX'
+
 
     protocol_list = [
         ("", ""),
@@ -119,12 +123,12 @@ class FlowspecForm(forms.ModelForm):
     net = forms.ModelChoiceField(
         Network.objects.all(),
         widget=forms.Select(attrs={"style": "width: 100%;"}),
-        label="Destination Network*",
+        label="Destination Network *[required]",
     )
 
     name = forms.CharField(
         widget=forms.TextInput(attrs={"style": "width: 100%;"}),
-        label="Rule Name*",
+        label="Rule Name *[required]",
         required=True,
     )
     srcip = forms.CharField(
@@ -140,7 +144,7 @@ class FlowspecForm(forms.ModelForm):
     )
     dstip = forms.CharField(
         widget=forms.TextInput(attrs={"style": "width: 100%;"}),
-        label="Destination IP*",
+        label="Destination IP *[required]",
         required=True,
     )
     dstprt = forms.IntegerField(

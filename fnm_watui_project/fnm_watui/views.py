@@ -19,10 +19,6 @@ import json
 import ast
 import ipaddress
 import time
-import threading
-import asyncio
-import httpx
-from asgiref.sync import sync_to_async
 
 # Set the FastNetMon API endpoint and authentication details
 DEFAULT_API_ENDPOINT = "http://127.0.0.1:10007"

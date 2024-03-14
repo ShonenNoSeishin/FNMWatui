@@ -1,4 +1,4 @@
-<a href="https://www.buymeacoffee.com/thibaut_watrisse" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<a href="https://www.buymeacoffee.com/thibaut_watrisse" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 # FNMWatui
 
@@ -116,6 +116,19 @@ cd fnm_watui_project
 # Create the .env file from the example one 
 cp example.env .env 
 # --> edit the .env file with your informations 
+````
+
+## https access 
+
+It's better to get https access to the interface to ensure the client-server security by encryption. The docker-compose i made contains a nginx reverse proxy that ensure https access to the interface. The only think you have to do is to generate a certificate file and a key file. If you already have yours, you just have to rename them to "nginx-selfsigned.crt" and "nginx-selfsigned.key" in the "fnm_watui_project/certs/" directory (or edit the nginx.conf file to match your certificate and key filenames).
+
+Personnaly, i used a selfsigned certificate and key so here is the simple way to create them : 
+
+````bash
+# Go to the good directory
+cd fnm_watui_project/certs
+# Install openssl if it is not already done and run this command to generate your selfsigned certificates
+openssl req -x509 -sha256 -days 1825 -newkey rsa:2048 -nodes -keyout nginx-selfsigned.key -out nginx-selfsigned.crt
 ````
 
 ## Download docker and docker-compose

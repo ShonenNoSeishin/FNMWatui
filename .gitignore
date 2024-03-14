@@ -1,1 +1,3 @@
 fnm_watui_project/.env
+fnm_watui_project/certs/nginx-selfsigned.crt
+fnm_watui_project/certs/nginx-selfsigned.key
