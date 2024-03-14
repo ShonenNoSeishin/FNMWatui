@@ -1,3 +1,5 @@
+<a href="https://www.buymeacoffee.com/thibaut_watrisse" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 # FNMWatui
 
 A dockerized interface to manage fastnetmon (https://github.com/pavel-odintsov/fastnetmon) based on fsgui https://github.com/pirmins/fnm-fsgui and Webui (https://github.com/ptx-tech/fnm-webui-docker). This is an open-source way to get a complete interface for fastnetmon easily deployable with docker. 
