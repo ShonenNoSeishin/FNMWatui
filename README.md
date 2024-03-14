@@ -141,7 +141,7 @@ cd fnm_watui_project
 docker compose-up --build -d
 ````
 
-To see the logs of your container, you can run :
+To see the logs of your container, you can run this query :
 
 ````bash
 docker logs <container_name>
