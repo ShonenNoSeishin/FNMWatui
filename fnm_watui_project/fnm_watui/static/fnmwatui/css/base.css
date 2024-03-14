@@ -1,0 +1,51 @@
+<style type="text/css">
+ul.messages li.error {
+  color: red;
+}
+
+/* Styles pour définir une taille fixe de colonnes */
+.table-container { 
+display: flex;
+justify-content: center;
+align-items: center;
+width: 100%;
+}
+
+/* Styles pour définir une taille fixe de colonnes */
+.table {
+    max-width: 800px; /* Ajustez la largeur maximale selon vos besoins */
+    width: 100%;
+    border-collapse: collapse;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* Définir une largeur fixe pour les colonnes avec Bulma */
+.table th:nth-child(1), .table td:nth-child(1) {
+    width: 20%; /* Ajustez la largeur de la première colonne */
+}
+
+.table th:nth-child(2), .table td:nth-child(2) {
+    width: 60%; /* Ajustez la largeur de la deuxième colonne */
+}
+
+.th{
+  color: black;
+}
+
+.h1, h1, p, h2, header, a{
+  color: black;
+}
+
+.panel-success{
+    color: green;
+    background-color: green;
+}
+
+.panel-primary{
+    color: red;
+    background-color: red;
+}
+
+</style>

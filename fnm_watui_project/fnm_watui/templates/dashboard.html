@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<head>
+   <style type="text/css">
+		.panel-success{
+		    color: limegreen;
+		    background-color: limegreen;
+		}
+
+		.panel-primary{
+		    color: red;
+		    background-color: red;
+		}
+	</style>
+</head>
+
+<div class="flex-container" style="display: flex; flex-direction: column; justify-content: space-between; text-align: center; align-content: center; height: 100%; align-items: flex-start; margin-top: 0%;">
+	
+	<div class="flex-item" style="width: 100%; align-content: center; text-align: center; margin-bottom: 5%;">
+		{% if request.user.is_authenticated %}
+		<h1 class="title" style=" color:  black;  border-block: 2px solid black; border-bottom: 2px solid black;">
+		  <b>Dashboard</b>
+		</h1>
+		  {% if messages %}
+		    <ul class="messages">
+		      {% for message in messages %}
+		        <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+		      {% endfor %}
+		    </ul>
+		  {% endif %}
+	</div>
+
+	<div class="flex-item" style="width: 100%; justify-content: space-between; flex-wrap: wrap; align-content: center; text-align: center;">
+	    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Enable or disable automated banning and unbanning <a href="" title="You can enable or disable automated banning to allow FastNetMon to decide itself to ban when it consider it's a good thing to do it">🔎</a></h2>
+		<div class="flex-item" style="flex-wrap: wrap; display: flex; justify-content: space-between; width: 90%; height: 40%;">
+	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%; margin-left: 10%; height: 100%;">
+	    	<form id="banForm" method="post" action="{% url 'set_global_ban' %}">
+	    		{% csrf_token %}
+	        <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}">
+        		<button type="submit" style="	width: 100%" class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}">
+	            <div class="row">
+	                <div class="col-xs-9 text-right">
+	                    <div class="huge" style="color:white;">Bans</div>
+	                    <div style="color: 	white"><strong>{% if global_ban_status %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+	                </div>
+	            </div>
+	        </div>
+	      </button>
+	      </form>
+	    </div>
+	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%;">
+	    	<form id="unbanForm" method="post" action="{% url 'set_global_unban' %}">
+	    		{% csrf_token %}
+	    		<div class="{% if global_unban_status %}panel-success{% else %}panel-primary{% endif %}">
+        <button type="submit" style="width: 100%" class="{% if global_unban_status %}panel-success{% else %}panel-primary{% endif %}">
+	            <div class="row">
+	                <div class="col-xs-9 text-right">
+	                    <div class="huge" style="color:white;">UnBans</div>
+	                    <div style="color: 	white"><strong>{% if global_unban_status %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+	                </div>
+	            </div>
+	        </div>
+	        </button>
+	      </form>
+	    </div>
+		</div>
+		<br>
+			<div class="flex-item">
+		    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> General traffic <a href="" title="Here you can see the general traffic in mb per seconds and in packets per seconds">🔎</a></h2>
+		    <div>
+		    {% for traffic_type, icon, value, suffix, label in traffic_data %}
+		      <div class="col-sm-3" style="color: black;">
+		        <div class="panel panel-default">
+		          <div class="panel-heading">
+		            <div class="row">
+		              <div class="col-xs-3">
+		                <i class="fa {{ icon }} fa-5x"></i>
+		              </div>
+		              <div class="col-xs-9 text-right" style="color: black;">
+		                <div class="huge" style="color: slategrey;">{{ value }} {{ suffix }}</div>
+		                <div><strong>{{ label }}</strong></div>
+		              </div>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		    {% endfor %}
+		 		</div>
+			</div>
+		
+		<br>
+		<div class="flex-item" style="width: 100%;">
+        <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Network Traffic <a href="" title="Here you can see the informations about the network traffic">🔎</a></h2>
+    	<div class="panel panel-default panel-100" style="width: 100%;">
+        <div class="panel-heading">
+        
+        <table style="width: 100%; align-content: center;">
+            <thead>
+                <tr>
+                    <th><u>IP</u></th>
+                    <th><u>PPS</u></th>
+                    <th><u>MBPS</u></th>
+                    <th><u>Flows</u></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for host_data in host_traffic %}
+                    <tr>
+                        <td>{{ host_data.host }}</a></td>
+                        <td>{{ host_data.incoming_packets }}</td>
+                        <td>{{ host_data.incoming_bytes|floatformat:2 }}</td>
+                        <td>{{ host_data.incoming_flows }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    	</div>
+		</div>
+
+		<br>
+		<div class="flex-item" style="width: 100%;">
+        <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Banned IPs <a href="" title="Here you can see, set, and delete blackhole rules. Please respect this nomenclature : X.X.X.X">🔎</a></h2>
+    	<div class="panel panel-default panel-100" style="width: 100%;">
+    		<form method="post" action="{% url 'dashboard'  %}">
+    			{% csrf_token %}
+    			<p><b> Add a blackhole IP : </b></p>
+    			<input class="form-control" style="border: none; padding-bottom: 2px solid red; align-content: center; text-align: center;" type="text" name="blackholed_ip" placeholder="Enter an IP like 'X.X.X.X'" />
+    		</form>
+        <div class="panel-heading">
+        
+        <table style="width: 100%; align-content: center;">
+            <thead>
+                <tr>
+                    <th><u>IP</u></th>
+                    <th><u>Delete blackholed IP</u></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in blackhole_info %}
+                    <tr>
+                        <td>{{ i.ip }}</td>
+                        <td><a href="{% url 'unban_ip_blackhole_view' i.ip %}">❌</a></td>
+                        
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    	</div>
+		</div>
+
+	  </div>
+	  <br>
+	  {% else %}
+	    <h1 class="title">You are not logged in</h1>
+	    <p><a href="{% url 'login' %}">Log In</a></p>
+	{% endif %}
+</div>
+<script>
+setTimeout(function(){
+   window.location.reload(1);
+}, 30000);
+</script>
+{% endblock %}

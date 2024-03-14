@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title" style="color: black; border-block: 2px solid black; border-bottom: 2px solid black;">
+  <b>Hostgroup management</b>
+</h1>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" style="color: red;"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if request.user.is_authenticated %}
+      {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+      {% endif %}
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <h1>Add Hostgroup</h1>
+      <form method="post" action="">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit">Add Hostgroup</button>
+      </form>
+      <br>
+      <h2 class="subtitle" style="color: black;"><b>Hostgroups</b></h2>
+      
+      <a href="" title="Here you can see, set, and delete hostgroups. it's a way to map some network ranges and set them same rules (like thresholds). You can modify directly in the tabs and validate with the button. You can also get all the informations of the hostgroup by selecting 'more informations for this group' and you can specify the hosts of the hostgroups should be banned if thresholds are exceeds">🔎</a>
+      {% for hostgroup in hostgroups %}
+      <div class="table-container">
+        <table border="1" class="table has-background-primary is-align-self-center" id="editable-table" style=" background-color: darkblue;">
+          <tr style="background-color:  cornflowerblue;">
+              <th class="has-text-centered" style="width: 200%;">Name</th>
+              <th class="has-text-centered">Description</th>
+              <th class="has-text-centered">Mapped networks</th>
+              <th class="has-text-centered">Treshold pps limit<a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered">Treshold Mbps (Bandwidth) limit <a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered">Treshold Flows limit <a href="" title="Thresholds (TCP + UDP + ICMP, both directions)">🔎</a></th>
+              <th class="has-text-centered"> ban enabled ? <a href="" title="based on Threshold">🔎</a></th>
+              <th class="has-text-centered" style="color: orange;">Validate modifications</th>
+              <th class="has-text-centered">Delete</th>
+          </tr>
+          <form method="post" action="{% url 'modify_hostgroup' hostgroup.name %}">
+            {% csrf_token %}
+            <tr style="background-color:  cornflowerblue;">
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="name" value="{{ hostgroup.name }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="description" value="{{ hostgroup.description }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="mapped_networks" value="{{ hostgroup.networks }}" placeholder="['X.X.X.X/XX',...]" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_pps" value="{{ hostgroup.threshold_pps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_mbps" value="{{ hostgroup.threshold_mbps }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="threshold_flows" value="{{ hostgroup.threshold_flows }}" /></td>
+                <td><input style="border: none; padding-bottom: 2px solid red; width: 135px;" type="text" name="enable_ban" value="{{ hostgroup.enable_ban }}" /></td>
+                <td><button type="submit" class="btn-modify">✅</button></td>
+                <td><a href="{% url 'delete_hostgroup' hostgroup.name %}">❌</a></td>
+            </tr>
+          <tr>
+            <td colspan="9" style="text-align: center;">
+                <a href="{% url 'hostgroup_info' hostgroup.name %}" style="color: darkblue;">❓More informations for this group❓</a>
+            </td>
+        </tr>
+
+
+          </form>
+
+        </table>
+        <br>
+    </div>
+      {% endfor %}
+  {% else %}
+      <h1 class="title">You are not logged in</h1>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+  {% endif %}
+{% endblock %}
+

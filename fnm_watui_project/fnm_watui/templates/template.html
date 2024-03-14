@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Template
+</h1>
+<h2 class="subtitle">
+  this is a template for the other pages
+</h2>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if request.user.is_authenticated %}
+      <h1 class="title">
+        <p>Template page of  {{ request.user.username }}!</p>
+      </h1>
+      {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+      {% endif %}
+  {% else %}
+      <h1 class="title">You are not logged in</h1>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+  {% endif %}
+{% endblock %}
+

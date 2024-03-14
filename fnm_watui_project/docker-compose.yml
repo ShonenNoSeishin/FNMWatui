@@ -1,0 +1,26 @@
+version: '3'
+services:
+  fnmwatui_project:
+    build: .
+    container_name: fnmwatui_project
+    tty: true
+    ports:
+      - "8048:8048"
+    env_file:
+      - .env
+    volumes:
+      - .:/fnmapp
+    command: bash -c "python manage.py runserver 0.0.0.0:8048" 
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    env_file:
+      - .env
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
+      - ./certs/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key
+    ports:
+      - 8443:8443
+      - 80:80

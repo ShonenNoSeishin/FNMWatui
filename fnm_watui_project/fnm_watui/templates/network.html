@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title" style="color: black;  border-block: 2px solid black; border-bottom: 2px solid black;">
+  <b>My Networks</b>
+</h1>
+
+<div class="column is-4 is-offset-4">
+{% if request.user.is_superuser %}
+  <h2 class="subtitle" style="color: black; margin-top: 0%; ">
+    Allocated networks
+  </h2>
+  {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: red">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+  <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p>
+  <a href="" title="Here you can see, set, and delete some network ranges. These ranges aren't mapped to the API, it's only to manage easier your flowspecs rules but BE CARE TO THE PREVIOUS WARNING">🔎</a>
+  <br>
+  <div class="block" style="margin-top: 20%;">
+    {% for network in networks %}
+      <div class="notification is-link" style="float: left; width: 92%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
+        {{ network.net }} - {{ network.user.username }}
+      </div>
+      <form style="width: 5%; float:left;" action="/network_delete/" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="{{ network.id }}" name="network_id" value="{{ network.id }}">
+        <button type="submit" value="Submit" style="width: 5%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button is-danger">X</button>
+      </form>
+    {% endfor %}
+  </div>
+{% else %}
+  <h2 class="subtitle" style="color: black;">
+    Your allocated networks
+  </h2>
+  <div class="block">
+    {% for network in networks %}
+      {% if network.user.id == request.user.id %}
+        <div class="notification is-link" style="margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
+          {{ network.net }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+<br><br>
+
+{% if request.user.is_authenticated and  request.user.is_superuser %}
+  <h1 class="title" style="color: black;">
+    Allocate a network to User
+  </h1>
+  <div class="column is-4 is-offset-4" style="display: flex; justify-content: center; align-items: center;">
+    <form id="network_form" method="POST" action="/network/" style="width: 100%;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button is-info" style="width: 110%; margin: 0 auto;">Allocate Network</button>
+    </form>
+  </div>
+
+
+{% endif %}
+{% endblock %}
