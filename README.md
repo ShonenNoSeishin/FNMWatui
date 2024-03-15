@@ -126,7 +126,9 @@ Personnaly, i used a selfsigned certificate and key so here is the simple way to
 
 ````bash
 # Go to the good directory
-cd fnm_watui_project/certs
+cd fnm_watui_project/
+# create certs directory and go in
+mkdir certs && cd certs
 # Install openssl if it is not already done and run this command to generate your selfsigned certificates
 openssl req -x509 -sha256 -days 1825 -newkey rsa:2048 -nodes -keyout nginx-selfsigned.key -out nginx-selfsigned.crt
 ````
