@@ -99,18 +99,18 @@
             <thead>
                 <tr>
                     <th><u>IP</u></th>
-                    <th><u>PPS</u></th>
-                    <th><u>MBPS</u></th>
-                    <th><u>Flows</u></th>
+                    <th><u>Incoming packets</u></th>
+                    <th><u>Incoming bytes</u></th>
+                    <th><u>Incoming flows</u></th>
                 </tr>
             </thead>
             <tbody>
                 {% for host_data in host_traffic %}
                     <tr>
                         <td>{{ host_data.host }}</a></td>
-                        <td>{{ host_data.incoming_packets }}</td>
-                        <td>{{ host_data.incoming_bytes|floatformat:2 }}</td>
-                        <td>{{ host_data.incoming_flows }}</td>
+                        <td>{{ host_data.incoming_packets }} pps</td>
+                        <td>{{ host_data.incoming_bytes }} bps</td>
+                        <td>{{ host_data.incoming_flows }} flows/s</td>
                     </tr>
                 {% endfor %}
             </tbody>
