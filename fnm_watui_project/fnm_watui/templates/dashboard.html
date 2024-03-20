@@ -33,8 +33,8 @@
 
 	<div class="flex-item" style="width: 100%; justify-content: space-between; flex-wrap: wrap; align-content: center; text-align: center;">
 	    <h2 class="subtitle" style="text-align: left; text-shadow: aliceblue; color: steelblue; font-size: 30px;"> Enable or disable automated banning and unbanning <a href="" title="You can enable or disable automated banning to allow FastNetMon to decide itself to ban when it consider it's a good thing to do it">🔎</a></h2>
-		<div class="flex-item" style="flex-wrap: wrap; display: flex; justify-content: space-between; width: 90%; height: 40%;">
-	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%; margin-left: 10%; height: 100%;">
+		<div class="flex-item" style="flex-wrap: wrap; display: flex; justify-content: space-between; width: 90%; height: 40%">
+	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%; margin-left: 10%; height: 100%; margin-left: 7%;">
 	    	<form id="banForm" method="post" action="{% url 'set_global_ban' %}">
 	    		{% csrf_token %}
 	        <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}">
@@ -49,7 +49,7 @@
 	      </button>
 	      </form>
 	    </div>
-	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%;">
+	    <div class="{% if global_ban_status %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%; margin-left: 1px;">
 	    	<form id="unbanForm" method="post" action="{% url 'set_global_unban' %}">
 	    		{% csrf_token %}
 	    		<div class="{% if global_unban_status %}panel-success{% else %}panel-primary{% endif %}">
@@ -58,6 +58,21 @@
 	                <div class="col-xs-9 text-right">
 	                    <div class="huge" style="color:white;">UnBans</div>
 	                    <div style="color: 	white"><strong>{% if global_unban_status %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+	                </div>
+	            </div>
+	        </div>
+	        </button>
+	      </form>
+	    </div>
+	    <div class="{% if flex_thresh %}panel-success{% else %}panel-primary{% endif %}" style="width: 30%; margin-left: 1px;">
+	    	<form id="FlexThreshForm" method="post" action="{% url 'set_flex_thresh' %}">
+	    		{% csrf_token %}
+	    		<div class="{% if flex_thresh %}panel-success{% else %}panel-primary{% endif %}">
+        <button type="submit" style="width: 100%" class="{% if flex_thresh %}panel-success{% else %}panel-primary{% endif %}">
+	            <div class="row">
+	                <div class="col-xs-9 text-right">
+	                    <div class="huge" style="color:white;">Flexible thresholds</div>
+	                    <div style="color: 	white"><strong>{% if flex_thresh %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
 	                </div>
 	            </div>
 	        </div>

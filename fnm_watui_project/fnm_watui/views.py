@@ -48,8 +48,9 @@ def dashboard(request):
 	global_ban_status = get_global_ban()
 	global_unban_status = get_global_unban()
 	host_traffic = get_hosts_traffic()
+	flex_thresh = get_global_flexible_thresholds()
 	# si l'API prend du temps à charger
-	if host_traffic is None : 
+	if host_traffic is None or total_traffic is None: 
 		time.sleep(0.2)
 		return redirect("dashboard")
 	blackhole_info = get_blackhole()
@@ -85,7 +86,7 @@ def dashboard(request):
 			ban_response = set_blackhole(form.cleaned_data['blackholed_ip'])
 			if not ban_response:
 				messages.error(request, f"can't create this blackhole rule : {ban_response.text}")
-				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form, 'current_view': 'dashboard',})
+				return render(request, "dashboard.html", {"traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, "flex_thresh": flex_thresh, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form, 'current_view': 'dashboard',})
 			else:
 				return redirect('dashboard')
 
@@ -95,7 +96,7 @@ def dashboard(request):
 
 	else:
 		form = add_blackhole_form()
-		return render(request, "dashboard.html", {'current_view': 'dashboard', "traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
+		return render(request, "dashboard.html", {'current_view': 'dashboard', "traffic_data": traffic_data, "global_ban_status": global_ban_status, "global_unban_status": global_unban_status, "flex_thresh": flex_thresh, 'host_traffic': host_traffic_from_context, 'blackhole_info': blackhole_info, "form": form})
 
 
 @login_required	
@@ -482,6 +483,16 @@ def get_global_ban():
 		return json_data["value"]
 	return False
 
+def get_global_flexible_thresholds():
+	response = requests.get(
+			f"{FNM_API_ENDPOINT}/main/flexible_thresholds",
+			auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+	json_data = response.json()
+	if response.status_code == 200:
+		return json_data["value"]
+	return False
+
 
 def get_global_unban():
 	response = requests.get(
@@ -528,6 +539,23 @@ def set_global_unban(request):
 		)
 		if response.status_code != 200:
 			messages.error(request, "set unban did'nt succeed")
+		return redirect("/dashboard")
+
+@login_required
+def set_flex_thresh(request):
+	if request.method == "POST":
+		# voir le status actuel
+		boolean = get_global_flexible_thresholds()
+		if boolean:
+			status = "false"
+		else:
+			status = "true"
+		response = requests.put(
+				f"{FNM_API_ENDPOINT}/main/flexible_thresholds/{status}",
+				auth=(FNM_API_USER, FNM_API_PASSWORD),
+		)
+		if response.status_code != 200:
+			messages.error(request, "set flexible_thresholds did'nt succeed")
 		return redirect("/dashboard")
 
 
