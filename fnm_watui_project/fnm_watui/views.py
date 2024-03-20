@@ -159,10 +159,6 @@ def modify_hostgroup(request, hostgroup):
 			threshold_mbps = form.cleaned_data['threshold_mbps']
 			threshold_flows = form.cleaned_data['threshold_flows']
 			enable_ban = form.cleaned_data['enable_ban']
-
-			if name == "global":
-				messages.error(request, "you can't modify the global hostgroup, it's a native group")
-				return redirect("hostgroup")
 			
 			keys = ["name", "description", "networks", "threshold_pps", "threshold_mbps", "threshold_flows", "enable_ban"]
 			values = [name, description, mapped_networks, threshold_pps, threshold_mbps, threshold_flows, enable_ban.lower()]
