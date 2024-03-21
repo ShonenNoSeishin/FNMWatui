@@ -8,7 +8,7 @@
 <div class="column is-4 is-offset-4">
 {% if request.user.is_superuser %}
   <h2 class="subtitle" style="color: black; margin-top: 0%; ">
-    Allocated networks
+    Allocated networks <a href="" title="Here you can see, set, and delete some network ranges. These ranges are mapped to the API. If you delete one subnet used for flowspec rule, it will not delete the rule">🔎</a>
   </h2>
   {% if messages %}
         <ul class="messages">
@@ -17,17 +17,17 @@
           {% endfor %}
         </ul>
       {% endif %}
-  <p style="border-block: 2px solid red;"> WARNING : if you delete a network used for flowspec rules, it will delete the concerned flowspec rules from the DB (and not in the API side)</p>
-  <a href="" title="Here you can see, set, and delete some network ranges. These ranges aren't mapped to the API, it's only to manage easier your flowspecs rules but BE CARE TO THE PREVIOUS WARNING">🔎</a>
-  <br>
+  
+  
+  
   <div class="block" style="margin-top: 20%;">
     {% for network in networks %}
       <div class="notification is-link" style="float: left; width: 92%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px;">
-        {{ network.net }} - {{ network.user.username }}
+        {{ network }}
       </div>
       <form style="width: 5%; float:left;" action="/network_delete/" method="post">
         {% csrf_token %}
-        <input type="hidden" id="{{ network.id }}" name="network_id" value="{{ network.id }}">
+        <input type="hidden" id="cidr" name="cidr" value="{{ network }}">
         <button type="submit" value="Submit" style="width: 5%; margin-bottom: 2px; height: 30px; padding-top: 2px; padding-bottom: 2px; text-align: justify;" class="button is-danger">X</button>
       </form>
     {% endfor %}

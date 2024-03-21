@@ -4,6 +4,7 @@ from .models import Network, Flowspec
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 import ipaddress
+from .api_utils import get_networks
 
 
 def validate_network(value):
@@ -46,25 +47,25 @@ class HostgroupForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 2, 'cols': 40}),
     )
 
-class NetworkForm(forms.ModelForm):
-    net = forms.CharField(
+class NetworkForm(forms.Form):
+    network = forms.CharField(
         widget=forms.TextInput(attrs={"style": "width: 100%;"}),
         label="Network (CIDR notation)",
         required=True,
         validators=[validate_network],
     )
-    user = forms.ModelChoiceField(
-        User.objects.all(),
-        widget=forms.Select(attrs={"style": "width: 100%;"}),
-        label="User",
-        required=True,
-    )
+    # user = forms.ModelChoiceField(
+    #     User.objects.all(),
+    #     widget=forms.Select(attrs={"style": "width: 100%;"}),
+    #     label="User",
+    #     required=True,
+    # )
 
     # An inline class to provide additional information on the form.
-    class Meta:
-        fields = ("net", "user")
+    # class Meta:
+        # fields = ("net")
         # This is the association between the model and the model form
-        model = Network
+        # model = Network
 
 
 class FlowspecForm(forms.ModelForm):
@@ -84,14 +85,11 @@ class FlowspecForm(forms.ModelForm):
         )
 
     # This is the association between the model and the model form
-    model = Flowspec
+    # model = Flowspec
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.user = user
-            self.fields['net'].queryset = Network.objects.filter(user=user)
+        self.fields['net'].queryset = get_networks() # Network.objects.filter(user=user) # Todo : mettre une liste des networks API
 
         # Ajouter les placeholders aux champs srcip et dstip
         self.fields['srcip'].widget.attrs['placeholder'] = 'X.X.X.X/XX'
@@ -120,10 +118,16 @@ class FlowspecForm(forms.ModelForm):
         required=True,
     )
 
-    net = forms.ModelChoiceField(
-        Network.objects.all(),
-        widget=forms.Select(attrs={"style": "width: 100%;"}),
+    tuple_networks = []
+    j = 0
+    for i in get_networks():
+        tuple_networks.append((i,i))
+        j += 1
+    print(tuple_networks)
+    net = forms.CharField(
+        widget=forms.Select(choices=tuple_networks,attrs={"style": "width: 100%;"}),
         label="Destination Network *[required]",
+        required=True,
     )
 
     name = forms.CharField(
@@ -152,7 +156,6 @@ class FlowspecForm(forms.ModelForm):
         label="Destination Port",
         required=False,
     )
-
     # Custom validator
     def clean(self):
         cleaned_data = super().clean()

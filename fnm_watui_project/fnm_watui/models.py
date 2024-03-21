@@ -26,8 +26,8 @@ class Flowspec(models.Model):
     protocol = models.CharField(max_length=10, blank=True)
     action = models.CharField(max_length=10)
     active = models.BooleanField(default=False)
-    net = models.ForeignKey(Network, on_delete=models.CASCADE, related_name="flowspecs")
-
+    net = models.CharField(max_length=20) # models.ForeignKey(Network, on_delete=models.CASCADE, related_name="flowspecs")
+    # TODO : changer le network en str 
     class Meta:
         unique_together = ["net", "srcip", "srcprt", "dstip", "dstprt", "protocol"]
 
