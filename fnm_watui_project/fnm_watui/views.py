@@ -364,7 +364,7 @@ def flowspec_redeploy(request):
 def flowspec_flush(request):
 	if request.method == "POST":
 		#nets = Network.objects.all(id__=request.user)
-		rules = Flowspec.objects.filter(net__user=request.user)
+		rules = Flowspec.objects.all()
 		for rule in rules: 
 			if remove_flowspec_route(rule):
 				rule.active = False
@@ -378,7 +378,7 @@ def flowspec_flush(request):
 
 @login_required	
 def modify_flowspec_route(request, flowspec_id):
-	w = Flowspec.objects.get(id=flowspec_id)
+	w = Flowspec.objects.all()
 	if request.method == "POST":
 		form = FlowspecForm(request.POST, instance=w)
 		if form.is_valid():
